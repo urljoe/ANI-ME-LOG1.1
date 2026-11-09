@@ -88,7 +88,21 @@ h3{margin:0;font:700 19px var(--serif)}
 .ep{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;font-weight:600;position:relative}
 .ep small{display:block;font-weight:400;color:var(--mut);font-size:11px}
 .ep:hover{border-color:var(--ac)}
-.ep.seen{opacity:.42;background:#1a1012}
+.ep.seen{opacity:.5;background:#1a1012}.ep.seen:hover{opacity:.9}
+.ep.cur{background:var(--ac);color:#2a1216;border-color:var(--ac);opacity:1}
+.wt{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
+.epc{display:flex;flex-wrap:wrap;gap:10px}
+.epc .ep{width:46px;height:46px;border-radius:50%;padding:0;display:grid;place-items:center}
+.epc .ep.seen::after{content:none}
+.eprs{display:grid;gap:8px;max-height:420px;overflow:auto}
+.epr{text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+.epr small{display:block;color:var(--mut);font-size:12px}
+.epr.seen{opacity:.5}.epr.seen:hover{opacity:.9}.epr.cur{border-color:var(--ac);opacity:1}
+.rec{display:flex;gap:12px;align-items:center;width:100%;background:none;border:0;padding:8px 0;cursor:pointer;text-align:left}
+.rec .rp{width:54px;aspect-ratio:2/3;background:#2e1c20;border-radius:6px;overflow:hidden;flex:none}
+.rec img{width:100%;height:100%;object-fit:cover}
+.rec b{display:block;font-size:14px}.rec small{color:var(--mut)}
+@media(max-width:900px){.wt{grid-template-columns:1fr}}
 .ep.seen::after{content:"✓";position:absolute;top:3px;right:7px;font-size:11px;color:var(--ac2)}
 .ep.off{opacity:.25;cursor:default;border-style:dashed}
 .fl{list-style:none;margin:0 0 24px;padding:0}
@@ -149,11 +163,10 @@ dialog::backdrop{background:#000c}
 <div class="ptitle"><h1 id="ttl">Home</h1><p id="sub"></p></div>
 <section id="view"></section>
 <footer>thewiltedpetals.blooms</footer>
-<dialog id="pd"></dialog>
 <div id="toast" role="status"></div>
 <script>
-const K='animelog.v1',$=s=>document.querySelector(s),PD=$('#pd');
-let st={sources:[],proxy:'',auto:true,watch:{},hist:[],seen:{},device:'auto'},view='home',prev='home',CUR='',q='',fsrc='',LIM=120,LIB={map:new Map(),list:[]},PLAY=null,DEV='win',HLSP=null;
+const K='animelog.v1',$=s=>document.querySelector(s);
+let st={sources:[],proxy:'',auto:true,watch:{},hist:[],seen:{},device:'auto'},view='home',prev='home',CUR='',q='',fsrc='',LIM=120,LIB={map:new Map(),list:[]},PLAY=null,DEV='win',HLSP=null,WSORT='asc',WLIST=false;
 try{Object.assign(st,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(st))}catch(e){toast('Browser storage is full, so this session won’t be cached.')}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -361,31 +374,44 @@ function attachHls(){
     h.loadSource(src);h.attachMedia(v);
   }).catch(()=>toast('Couldn’t load the video library.'));
 }
-function pview(){
-  const p=PLAY,e=p.e;
-  const frame=e?((e.type==='video'||e.type==='hls')?`<video id="pv" controls autoplay playsinline ${e.type==='video'?`src="${safe(e.src)}"`:''}></video>`
-    :`<iframe src="${safe(e.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${e.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`)
+function wview(){
+  const p=PLAY,e=entryFor(p.k)||{k:p.k,title:p.title,from:[],tags:[],score:0};
+  const epm=epsOf(e),have=[...epm.keys()].sort((a,b)=>num(a)-num(b)),sn=st.seen[p.k]||{eps:{}};
+  const i=have.indexOf(String(p.ep)),pe=i>0?have[i-1]:'',ne=i>=0&&i<have.length-1?have[i+1]:'',x=p.e;
+  const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`
+    :`<iframe src="${safe(x.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${x.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`)
     :`<p class="empty">${esc(p.msg)}</p>`;
-  return`<div class="phd"><h3>${esc(p.title||'Now playing')}${p.ep?' · Episode '+esc(p.ep):''}</h3><button class="btn sm" data-act="pclose">Close</button></div>
-<div class="vid">${frame}</div>${e&&e.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site”.</p>':''}
+  const order=WSORT==='desc'?[...have].reverse():have;
+  const cls=ep=>`${String(p.ep)===ep?'cur':''} ${sn.eps[ep]?'seen':''}`;
+  const circ=ep=>`<button class="ep ${cls(ep)}" data-act="ep" data-ep="${esc(ep)}" aria-label="Episode ${esc(ep)}">${esc(ep)}</button>`;
+  const rowb=ep=>{const f=epm.get(ep),lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');return`<button class="epr ${cls(ep)}" data-act="ep" data-ep="${esc(ep)}"><b>Episode ${esc(ep)}</b><small>${esc(lb?lb+' · ':'')}${esc(f.map(y=>y.src).join(', '))}</small></button>`};
+  const r=recs(e,LIB.list).slice(0,8);
+  return`<div class="page"><div class="wt"><div>
+<div class="row" style="justify-content:space-between;margin-bottom:14px"><button class="btn sm" data-act="back">‹ Back</button><div class="row">${bmBtn(p.k)}<button class="btn sm" data-act="share">Share</button></div></div>
+<div class="vid">${frame}</div>
+${x&&x.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site”.</p>':''}
+<div class="row" style="justify-content:space-between;margin:10px 0 14px"><button class="btn" data-act="ep" data-ep="${esc(pe)}" ${pe?'':'disabled'}>‹ Previous episode</button><b>${esc(p.title||'')}${p.ep?' · Episode '+esc(p.ep):''}</b><button class="btn" data-act="ep" data-ep="${esc(ne)}" ${ne?'':'disabled'}>Next episode ›</button></div>
 ${p.alts.length>1?`<p class="note">Servers</p><div class="chips">${p.alts.map(f=>`<button class="chip ${f.link===p.url?'on':''}" data-act="srv" data-u="${esc(f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div>`:''}
-<p class="note"><a href="${safe(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">Open on its own site</a></p>`;
+<p class="note"><a href="${safe(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">Open on its own site</a></p></div>
+<aside><div class="panel"><div class="row" style="justify-content:flex-end;margin-bottom:12px"><button class="btn sm" data-act="wlist">${WLIST?'Grid view':'List view'}</button><button class="btn sm" data-act="wsort">${WSORT==='asc'?'Oldest first':'Newest first'}</button></div>
+${have.length?(WLIST?`<div class="eprs">${order.map(rowb).join('')}</div>`:`<div class="epc">${order.map(circ).join('')}</div>`):'<p class="note">No episode numbers from your sources for this title.</p>'}</div>
+<div class="panel"><h3>For You</h3>${r.map(y=>`<button class="rec" data-open="${esc(y.k)}"><span class="rp">${y.image?`<img src="${safe(y.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span><span><b>${esc(y.title)}</b><small>${y.total?y.total+' episodes':''}${y.total&&y.tags[0]?' · ':''}${esc(y.tags[0]||'')}</small></span></button>`).join('')||'<p class="note">Nothing to suggest yet.</p>'}</div></aside></div></div>`;
 }
-function showP(){PD.innerHTML=pview();if(!PD.open)PD.showModal();attachHls()}
 async function play(u,k,title,ep){
   const en=entryFor(k);
-  if(en){st.hist=[snap(en),...st.hist.filter(h=>h.k!==en.k)].slice(0,100);save()}
+  if(en){st.hist=[snap(en),...st.hist.filter(h=>h.k!==en.k)].slice(0,100);save();CUR=k}
   const e=embedFor(u);
   const alts=((en&&en.from)||[]).filter(f=>f.link&&(!ep||String(f.ep)===String(ep))).slice(0,12);
   PLAY={k,title,ep,url:u,e,alts,msg:'This link can’t be played inside the app. Use “Open on its own site”.'};
-  showP();
+  if(view!=='watch'&&view!=='title')prev=view;
+  view='watch';draw();scrollTo(0,0);
   if(e&&e.type==='rumble'){
     try{
       const r=await fetch('https://rumble.com/api/Media/oembed.json?url='+encodeURIComponent(u));
       const m=String((await r.json()).html||'').match(/src="([^"]+)"/);if(!m)throw 0;
       PLAY.e={type:'frame',src:m[1]};
     }catch(x){PLAY.e=null;PLAY.msg='Rumble didn’t let the app look this video up. Use “Open on its own site”.'}
-    showP();
+    draw();
   }
 }
 function markSeen(k,ep){
@@ -398,7 +424,7 @@ function playEp(e,ep){
   const l=epsOf(e).get(String(ep))||[];
   const f=l.find(x=>x.link&&embedFor(x.link).type!=='page')||l.find(x=>x.link);
   if(!f)return toast('No link for that episode yet.');
-  markSeen(e.k,String(ep));play(f.link,e.k,e.title,String(ep));render();
+  markSeen(e.k,String(ep));play(f.link,e.k,e.title,String(ep));
 }
 
 /* rendering */
@@ -461,7 +487,8 @@ function srcView(){
   return`<div class="panel"><h3>Display</h3><p class="note">Auto picks the layout for your device. Apps built around this page can set it with ?device=win, ?device=mobile or ?device=tv.</p>
 <div class="chips" style="margin:0">${[['auto','Auto'],['win','Windows'],['mobile','Mobile'],['tv','TV']].map(([v,l])=>`<button class="chip ${(st.device||'auto')===v?'on':''}" data-act="dev" data-d="${v}">${l}${v==='auto'?' ('+DEV+')':''}</button>`).join('')}</div></div>
 <div class="panel"><h3>Quick add</h3><p class="note">Open anime catalogues. Each one loads several pages, so you get hundreds of titles.</p><div class="row">${PRESETS.map((p,i)=>`<button class="btn" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div>
-<form id="dm" class="row" style="margin-top:14px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form></div>
+<form id="dm" class="row" style="margin-top:14px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form>
+<form id="yt" class="row" style="margin-top:10px"><input name="n" style="flex:1;min-width:120px" placeholder="Channel name (optional)" aria-label="YouTube channel name"><input name="c" style="flex:2;min-width:200px" placeholder="YouTube channel ID (starts with UC) or feed link" aria-label="YouTube channel ID"><button class="btn" type="submit">Add YouTube</button></form></div>
 <div class="panel"><h3>Add a source</h3>
 <form id="add"><input name="name" placeholder="Name (optional)" aria-label="Source name">
 <input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address">
@@ -488,7 +515,8 @@ function draw(){
   const latest=[...L].sort((a,b)=>(b.date-a.date)||(a.ord-b.ord));
   const W=Object.values(st.watch).reverse().map(x=>LIB.map.get(x.k)||x),H=st.hist.map(x=>LIB.map.get(x.k)||x);
   let h='',T=['',''];
-  if(view==='title'){const e=entryFor(CUR);h=e?tview(e,L):'<div class="page"><p class="empty">Title not found.</p></div>';T=['Title','']}
+  if(view==='watch'){h=PLAY?wview():'<div class="page"><p class="empty">Nothing playing.</p></div>';T=['Watch','']}
+  else if(view==='title'){const e=entryFor(CUR);h=e?tview(e,L):'<div class="page"><p class="empty">Title not found.</p></div>';T=['Title','']}
   else if(view==='home'){
     T=['Home',''];
     const hero=latest.find(e=>e.image)||latest[0];
@@ -509,17 +537,19 @@ function draw(){
   else if(view==='watchlist'){const f=flt(W);T=['Watchlist',`${W.length} saved`];h=grid(f,'Tap the bookmark on any title to save it here.')}
   else if(view==='history'){const f=flt(H);T=['History','Recently opened'];h=(H.length?`<div class="row" style="margin-bottom:16px"><button class="btn sm" data-act="clrh">Clear history</button></div>`:'')+grid(f,'Titles you open will appear here.')}
   else{T=['Settings','Sources, network and backup'];h=srcView()}
-  if(view!=='home'&&view!=='title')h=`<div class="page">${h}</div>`;
-  document.body.classList.toggle('nohead',view==='home'||view==='title');
+  if(view!=='home'&&view!=='title'&&view!=='watch')h=`<div class="page">${h}</div>`;
+  document.body.classList.toggle('nohead',view==='home'||view==='title'||view==='watch');
   $('#ttl').textContent=T[0];$('#sub').textContent=T[1];
   if(document.activeElement?.id==='proxy')return;
-  $('#view').innerHTML=h;
+  const sig=view==='watch'&&PLAY?[PLAY.k,PLAY.ep,PLAY.url,PLAY.e&&PLAY.e.src,WSORT,WLIST,wl(PLAY.k),Object.keys((st.seen[PLAY.k]||{eps:{}}).eps).length].join('|'):'',vw=$('#view');
+  if(sig&&vw.dataset.w===sig&&vw.querySelector('.vid iframe,.vid video'))return;
+  vw.dataset.w=sig;vw.innerHTML=h;attachHls();
   if(DEV==='tv'&&document.activeElement===document.body){const f=$('#view .btn.pri,#view .open');if(f)f.focus({preventScroll:true})}
 }
 let rq=0;function render(){cancelAnimationFrame(rq);rq=requestAnimationFrame(draw)}
 function openTitle(k){
   const e=entryFor(k);if(!e)return;
-  if(view!=='title')prev=view;CUR=k;view='title';
+  if(view!=='title'&&view!=='watch')prev=view;PLAY=null;CUR=k;view='title';
   st.hist=[snap(e),...st.hist.filter(h=>h.k!==e.k)].slice(0,100);save();draw();scrollTo(0,0);
 }
 const download=(name,txt)=>{const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));l.download=name;l.click()};
@@ -535,13 +565,13 @@ function importWL(txt){
 
 /* events */
 document.addEventListener('click',async ev=>{
-  const n=ev.target.closest('.nav');if(n){view=n.dataset.v;LIM=120;draw();scrollTo(0,0);return}
+  const n=ev.target.closest('.nav');if(n){view=n.dataset.v;PLAY=null;LIM=120;draw();scrollTo(0,0);return}
   const o=ev.target.closest('[data-open]');
   if(o&&!ev.target.closest('.bmc')){openTitle(o.dataset.open);return}
   const b=ev.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,s=st.sources.find(x=>x.id===b.dataset.id);
   if(a==='go'){view=b.dataset.v;LIM=120;if(b.dataset.s!==undefined)fsrc=b.dataset.s;draw();scrollTo(0,0)}
-  if(a==='back'){view=prev||'home';draw()}
+  if(a==='back'){view=view==='watch'&&entryFor(CUR)?'title':(prev||'home');PLAY=null;draw();scrollTo(0,0)}
   if(a==='more'){LIM+=120;draw()}
   if(a==='fs'){fsrc=b.dataset.s;LIM=120;draw()}
   if(a==='scroll')b.parentElement.querySelector('.rail').scrollBy({left:+b.dataset.d*620,behavior:'smooth'});
@@ -552,7 +582,9 @@ document.addEventListener('click',async ev=>{
   if(a==='playbest'){const e=entryFor(b.dataset.k);if(!e)return;const h=[...epsOf(e).keys()].sort((x,y)=>num(y)-num(x))[0];if(h)playEp(e,h);else openTitle(e.k)}
   if(a==='pl'){const e=entryFor(b.dataset.k);play(b.dataset.u,b.dataset.k,e?e.title:'',''); }
   if(a==='srv')play(b.dataset.u,PLAY.k,PLAY.title,PLAY.ep);
-  if(a==='pclose')PD.close();
+  if(a==='share'){try{await navigator.clipboard.writeText(location.href.split('#')[0]);toast('Link copied.')}catch(e){toast('Copy the address from your browser.')}}
+  if(a==='wsort'){WSORT=WSORT==='asc'?'desc':'asc';draw()}
+  if(a==='wlist'){WLIST=!WLIST;draw()}
   if(a==='clrh'){st.hist=[];save();draw()}
   if(a==='refresh'){if(!st.sources.length)return toast('Add a source first.');await runAll(st.sources.filter(s=>s.url));toast('Sources refreshed.')}
   if(a==='reload'&&s)load(s);
@@ -566,6 +598,11 @@ document.addEventListener('click',async ev=>{
   if(a==='export')download('sources.json',JSON.stringify(st.sources.filter(x=>x.url).map(({name,url,body,pages,size,gap})=>({name,url,body,pages,size,gap})),null,2));
 });
 document.addEventListener('submit',async ev=>{
+  if(ev.target.id==='yt'){ev.preventDefault();
+    const m=ev.target.c.value.match(/UC[\w-]{22}/);if(!m)return toast('Paste a channel ID that starts with UC, or the channel’s feed link.');
+    const nm='YouTube · '+(ev.target.n.value.trim()||m[0].slice(0,8));if(st.sources.some(x=>x.name===nm))return toast('Already added.');
+    const ns={id:Date.now().toString(36),name:nm,url:'https://www.youtube.com/feeds/videos.xml?channel_id='+m[0],items:[]};
+    st.sources.push(ns);ev.target.reset();load(ns);return}
   if(ev.target.id==='dm'){ev.preventDefault();
     const c=ev.target.c.value.trim().replace(/^.*dailymotion\.com\/(?!video)/i,'').replace(/[\/?#].*$/,'');
     if(!c)return;const nm='Dailymotion · '+c;if(st.sources.some(x=>x.name===nm))return toast('Already added.');
@@ -592,8 +629,6 @@ document.addEventListener('input',ev=>{
   if(ev.target.id==='q'){q=ev.target.value;LIM=120;render()}
   if(ev.target.id==='proxy'){st.proxy=ev.target.value.trim();save()}
 });
-PD.addEventListener('click',ev=>{if(ev.target===PD)PD.close()});
-PD.addEventListener('close',()=>{PD.innerHTML='';PLAY=null;draw()});
 
 /* device modes */
 {const qd=new URLSearchParams(location.search).get('device');if(['win','mobile','tv'].includes(qd))st.device=qd}
@@ -613,11 +648,11 @@ document.addEventListener('keydown',ev=>{
   const a=document.activeElement,typing=a&&/INPUT|TEXTAREA/.test(a.tagName);
   const k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[ev.key];
   if(!k){
-    if(ev.key==='Escape'||(ev.key==='Backspace'&&!typing)){ev.preventDefault();if(PD.open)PD.close();else if(view==='title'){view=prev||'home';draw()}else if(view!=='home'){view='home';draw()}}
+    if(ev.key==='Escape'||(ev.key==='Backspace'&&!typing)){ev.preventDefault();if(view==='watch'){view=entryFor(CUR)?'title':(prev||'home');PLAY=null;draw()}else if(view==='title'){view=prev||'home';draw()}else if(view!=='home'){view='home';draw()}}
     return;
   }
   if(typing&&k[0])return;
-  const els=[...(PD.open?PD:document).querySelectorAll('button:not([disabled]),a[href],input:not([readonly]),textarea')].filter(e=>e.offsetParent!==null);
+  const els=[...document.querySelectorAll('button:not([disabled]),a[href],input:not([readonly]),textarea')].filter(e=>e.offsetParent!==null);
   if(!a||!els.includes(a)){if(els[0])els[0].focus();ev.preventDefault();return}
   const r0=a.getBoundingClientRect(),cx=r0.left+r0.width/2,cy=r0.top+r0.height/2;
   let best=null,bs=1e9;

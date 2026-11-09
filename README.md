@@ -23,12 +23,13 @@ Titles found in more than one source are merged quietly in the background.
 
 - **Home**: hero banner and rows (Latest, Watchlist, History, one row per source).
 - **Click a title** to open its synopsis page: score, genres, sub/dub labels, episode picker, last watched, bookmark with a tag (Plan to watch, Watching, Completed, Dropped) and recommendations.
-- **Episodes you open turn dim** so you can see what you’ve watched. Videos play in a window inside the app.
+- **Episodes you open turn dim** so you can see what you’ve watched. Clicking an episode opens a watch page: player on the left, episode picker, sort and list view on the right, previous and next buttons, server chips and a “For You” list. Every episode stays clickable; only the ones you open are dimmed.
 - **Settings**: layout (Auto, Windows, Mobile, TV), quick-add catalogues, your sources, watchlist export/import and network options.
 
 ## Sources
 
 - Quick add: AniList, Jikan (MyAnimeList data), Kitsu, AnimeSchedule release feeds and an Internet Archive collection. Catalogue sources load several pages each, so you get hundreds of titles.
+- YouTube channels (Settings → Quick add) work through the channel’s public feed, and their videos play inside the app.
 - Any site, feed or JSON address can be added. A bare site address (like `donghuazone.com`) finds its own feed.
 - Source entries can use `__PAGE__` and `__OFFSET__` in the address, with `pages`, `size`, `gap` and `body` fields (see `sources.json`).
 
