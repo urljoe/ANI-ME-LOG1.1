@@ -1,49 +1,40 @@
-# Ani-Me Log
+# Ani-Me Log — Universal Web Wrapper
 
-A single-page viewer that reads any number of sources (JSON or RSS/Atom feeds) and lists what they contain.
-Titles found in more than one source are merged quietly in the background.
+A no-build-step anime library and player, packaged as an installable PWA and prepared for native Android/iOS wrapping with Capacitor.
 
-## Files
+## Included
 
-| File | Purpose |
-|---|---|
-| `index.html` | The whole app (no install, no build step) |
-| `sources.json` | Sources loaded for everyone who opens the site |
-| `.nojekyll` | Tells GitHub Pages to serve the files as they are |
-| `icon.svg`, `icon-192.png`, `icon-512.png` | The petal app icon |
+- Original Ani-Me Log catalogue, sources, watchlist, history, episode progress and settings from `files8.1.zip`.
+- Existing Ani-Me Log icon artwork, restored from the earlier project archive.
+- PWA manifest, standalone/fullscreen display hints and service worker app-shell caching.
+- Browser history/back handling suitable for wrapped Android back navigation.
+- Native HTML5 video playback for direct MP4/WebM/OGG streams and HLS playback where supported (HLS.js is loaded when required).
+- Embedded providers remain embedded when they do not expose a direct media URL. Provider branding/watermarks inside their own player are not removed. The app does not add badges or overlays on top of the video.
+- Watchlist and progress continue to persist using the existing local storage implementation.
 
-## Put it on GitHub
+## Run as a website / install as PWA
 
-1. Create a public repository.
-2. **Add file → Upload files**: drag in the files themselves (not a folder), then commit.
-3. **Settings → Pages**: Deploy from a branch, `main`, `/ (root)`.
-4. Your site is at `https://YOUR-USERNAME.github.io/REPO-NAME/` after a minute or two.
+Serve this folder over HTTPS (or localhost for development). Open the site in a supported browser and choose **Install app** / **Add to Home Screen**. Service workers and PWA installation do not work reliably from `file://` or plain HTTP on a public host.
 
-## Using it
+## Build a native Android or iOS wrapper
 
-- **Home**: hero banner and rows (Latest, Watchlist, History, one row per source).
-- **Click a title** to open its synopsis page: score, genres, sub/dub labels, episode picker, last watched, bookmark with a tag (Plan to watch, Watching, Completed, Dropped) and recommendations.
-- **Episodes you open turn dim** so you can see what you’ve watched. Clicking an episode opens a watch page: player on the left, episode picker, sort and list view on the right, previous and next buttons, server chips and a “For You” list. Every episode stays clickable; only the ones you open are dimmed.
-- **Settings**: layout (Auto, Windows, Mobile, TV), quick-add catalogues, your sources, watchlist export/import and network options.
+Install Node.js (LTS), then from this folder:
 
-## Sources
+```sh
+npm install
+npx cap add android
+npx cap add ios
+npx cap sync
+npm run android
+# or: npm run ios
+```
 
-- Quick add: AniList, Jikan (MyAnimeList data), Kitsu, AnimeSchedule release feeds and an Internet Archive collection. Catalogue sources load several pages each, so you get hundreds of titles.
-- YouTube channels (Settings → Quick add) work through the channel’s public feed, and their videos play inside the app.
-- Any site, feed or JSON address can be added. A bare site address (like `donghuazone.com`) finds its own feed.
-- Source entries can use `__PAGE__` and `__OFFSET__` in the address, with `pages`, `size`, `gap` and `body` fields (see `sources.json`).
+Open the generated native project in Android Studio or Xcode and build/sign it there. iOS builds require macOS and Xcode. Native platform folders are generated locally by Capacitor and are not included in this source ZIP.
 
-## If a source won’t load
+## Offline limitations
 
-Some sites block direct requests from a web page. By default the app retries a blocked source in the background through public proxies and remembers the one that works. You can turn that off or add your own proxy in **Settings → Network**. **Remove failed sources** in Settings clears out anything that still can’t load.
+The app shell, icon, manifest and source-list configuration are cached for offline startup. Previously saved watchlist/history/progress remain in browser storage. Live catalogues, remote artwork, external feeds, and third-party video streams still require connectivity unless their provider independently supports offline playback. This wrapper does not download or bypass protected streams.
 
-## Watchlist backup
+## Playback notes
 
-**Settings → Watchlist backup** exports your watchlist and progress, and imports this app’s file, a JSON list of titles, or a text file with one title per line.
-
-## Layouts
-
-Wrapped apps can force a layout by loading `index.html?device=win`, `?device=mobile` or `?device=tv`. TV mode supports arrow keys, Enter and Back or Esc.
-
----
-thewiltedpetals.blooms
+Direct media URLs ending in `.mp4`, `.webm`, `.ogg` or `.m3u8` use the app's plain video surface and standard browser controls. YouTube, Dailymotion, Archive.org, Rumble and ordinary web pages continue to use their provider/page embed paths as appropriate. A site that blocks embedding or direct access must be opened at its original source.

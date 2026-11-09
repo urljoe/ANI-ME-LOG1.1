@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#140c0e">
+<meta name="description" content="Ani-Me Log — your personal anime library and video player.">
+<link rel="manifest" href="manifest.webmanifest">
 <title>Ani-Me Log</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C5 6 3 13 8 21c5-2 9-9 4-19z' fill='%23d98c8f'/%3E%3C/svg%3E">
 <style>
@@ -109,8 +112,15 @@ h3{margin:0;font:700 19px var(--serif)}
 .fl li{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
 .fl div{flex:1;min-width:0}
 .fl small{display:block;color:var(--mut)}
-.vid{aspect-ratio:16/9;background:#0b0607;border-radius:12px;overflow:hidden;margin-bottom:14px;display:grid;place-items:center}
-.vid iframe,.vid video{width:100%;height:100%;border:0}
+.vid{aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;margin-bottom:14px;display:grid;place-items:center;position:relative;box-shadow:0 16px 42px #0008}
+.vid iframe,.vid video{width:100%;height:100%;border:0;display:block;background:#000}
+.vid video{object-fit:contain}
+.vid iframe{color-scheme:dark}
+.play-sources{margin:8px 0 14px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#ffffff06}
+.play-sources summary{cursor:pointer;color:var(--mut);font-size:13px;user-select:none}
+.play-sources .chips{margin:10px 0 0}
+.player-title{font-weight:600;text-align:center;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:600px){.vid{border-radius:8px}.player-title{max-width:100%;font-size:13px}}
 .phd{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
 footer{padding:20px 32px;border-top:1px solid var(--line);color:var(--mut);font-size:13px;text-align:center;letter-spacing:.04em}
 dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:22px;width:min(1000px,96vw);max-height:94vh}
@@ -351,8 +361,8 @@ function embedFor(u){
   if(/rumble\.com\/embed\//i.test(u))return{type:'frame',src:u};
   if((m=u.match(/(?:youtube\.com\/watch\?(?:[^#]*&)?v=|youtu\.be\/)([\w-]{11})/i)))return{type:'frame',src:'https://www.youtube-nocookie.com/embed/'+m[1]};
   if((m=u.match(/archive\.org\/(?:details|embed)\/([^/?#]+)/i)))return{type:'frame',src:'https://archive.org/embed/'+m[1]};
-  if(/\.m3u8(\?|$)/i.test(u))return{type:'hls',src:u};
-  if(/\.(mp4|webm|ogg)(\?|$)/i.test(u))return{type:'video',src:u};
+  if(/\.m3u8(?:[?#]|$)/i.test(u))return{type:'hls',src:u};
+  if(/\.(mp4|webm|ogg)(?:[?#]|$)/i.test(u))return{type:'video',src:u};
   if(/rumble\.com\//i.test(u))return{type:'rumble',src:u};
   if(/^https?:\/\//i.test(u))return{type:'page',src:u};
   return null;
@@ -378,7 +388,7 @@ function wview(){
   const p=PLAY,e=entryFor(p.k)||{k:p.k,title:p.title,from:[],tags:[],score:0};
   const epm=epsOf(e),have=[...epm.keys()].sort((a,b)=>num(a)-num(b)),sn=st.seen[p.k]||{eps:{}};
   const i=have.indexOf(String(p.ep)),pe=i>0?have[i-1]:'',ne=i>=0&&i<have.length-1?have[i+1]:'',x=p.e;
-  const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`
+  const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline preload="metadata" controlslist="nodownload" ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`
     :`<iframe src="${safe(x.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${x.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`)
     :`<p class="empty">${esc(p.msg)}</p>`;
   const order=WSORT==='desc'?[...have].reverse():have;
@@ -391,13 +401,15 @@ function wview(){
 <div class="vid">${frame}</div>
 ${x&&x.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site”.</p>':''}
 <div class="row" style="justify-content:space-between;margin:10px 0 14px"><button class="btn" data-act="ep" data-ep="${esc(pe)}" ${pe?'':'disabled'}>‹ Previous episode</button><b>${esc(p.title||'')}${p.ep?' · Episode '+esc(p.ep):''}</b><button class="btn" data-act="ep" data-ep="${esc(ne)}" ${ne?'':'disabled'}>Next episode ›</button></div>
-${p.alts.length>1?`<p class="note">Servers</p><div class="chips">${p.alts.map(f=>`<button class="chip ${f.link===p.url?'on':''}" data-act="srv" data-u="${esc(f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div>`:''}
-<p class="note"><a href="${safe(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">Open on its own site</a></p></div>
+${p.alts.length>1?`<details class="play-sources"><summary>More playback sources</summary><div class="chips">${p.alts.map(f=>`<button class="chip ${f.link===p.url?'on':''}" data-act="srv" data-u="${esc(f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div></details>`:''}
+<p class="note"><a href="${safe(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Open original source</a></p></div>
 <aside><div class="panel"><div class="row" style="justify-content:flex-end;margin-bottom:12px"><button class="btn sm" data-act="wlist">${WLIST?'Grid view':'List view'}</button><button class="btn sm" data-act="wsort">${WSORT==='asc'?'Oldest first':'Newest first'}</button></div>
 ${have.length?(WLIST?`<div class="eprs">${order.map(rowb).join('')}</div>`:`<div class="epc">${order.map(circ).join('')}</div>`):'<p class="note">No episode numbers from your sources for this title.</p>'}</div>
 <div class="panel"><h3>For You</h3>${r.map(y=>`<button class="rec" data-open="${esc(y.k)}"><span class="rp">${y.image?`<img src="${safe(y.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span><span><b>${esc(y.title)}</b><small>${y.total?y.total+' episodes':''}${y.total&&y.tags[0]?' · ':''}${esc(y.tags[0]||'')}</small></span></button>`).join('')||'<p class="note">Nothing to suggest yet.</p>'}</div></aside></div></div>`;
 }
 async function play(u,k,title,ep){
+  const enteringWatch=view!=='watch';
+  if(enteringWatch)history.pushState({animeLog:'watch'},'',location.href);
   const en=entryFor(k);
   if(en){st.hist=[snap(en),...st.hist.filter(h=>h.k!==en.k)].slice(0,100);save();CUR=k}
   const e=embedFor(u);
@@ -571,7 +583,7 @@ document.addEventListener('click',async ev=>{
   const b=ev.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,s=st.sources.find(x=>x.id===b.dataset.id);
   if(a==='go'){view=b.dataset.v;LIM=120;if(b.dataset.s!==undefined)fsrc=b.dataset.s;draw();scrollTo(0,0)}
-  if(a==='back'){view=view==='watch'&&entryFor(CUR)?'title':(prev||'home');PLAY=null;draw();scrollTo(0,0)}
+  if(a==='back'){if(history.state&&history.state.animeLog==='watch'){history.back()}else{view=view==='watch'&&entryFor(CUR)?'title':(prev||'home');PLAY=null;draw();scrollTo(0,0)}}
   if(a==='more'){LIM+=120;draw()}
   if(a==='fs'){fsrc=b.dataset.s;LIM=120;draw()}
   if(a==='scroll')b.parentElement.querySelector('.rail').scrollBy({left:+b.dataset.d*620,behavior:'smooth'});
@@ -628,6 +640,13 @@ document.addEventListener('change',ev=>{
 document.addEventListener('input',ev=>{
   if(ev.target.id==='q'){q=ev.target.value;LIM=120;render()}
   if(ev.target.id==='proxy'){st.proxy=ev.target.value.trim();save()}
+});
+
+/* Browser and wrapped-app back navigation (Android system back maps to popstate). */
+addEventListener('popstate',()=>{
+  if(view==='watch'){view=entryFor(CUR)?'title':(prev||'home');PLAY=null;draw();scrollTo(0,0);return;}
+  if(view==='title'){view=prev||'home';draw();scrollTo(0,0);return;}
+  if(view!=='home'){view='home';PLAY=null;draw();scrollTo(0,0);}
 });
 
 /* device modes */
@@ -689,6 +708,9 @@ const LEGACY=new Set(['https://api.jikan.moe/v4/top/anime','https://api.jikan.mo
   save();draw();
   runAll(st.sources.filter(s=>s.url&&!(s.items||[]).length));
 })();
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
 </script>
 </body>
 </html>

@@ -1,0 +1,13 @@
+{
+  "appId": "com.anime.log",
+  "appName": "Ani-Me Log",
+  "webDir": ".",
+  "server": { "androidScheme": "https" },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 900,
+      "backgroundColor": "#140c0e",
+      "showSpinner": false
+    }
+  }
+}
