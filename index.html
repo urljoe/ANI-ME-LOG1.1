@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ani-Me Log</title>
 <style>
 :root{--bg:#140c0e;--side:#1a0f12;--card:#22151a;--line:#3b2629;--text:#f4e7e2;--mut:#a98f8b;--ac:#d98c8f;--ac2:#c99a62;--sel:#432a2e;--serif:Georgia,"Times New Roman",serif}
@@ -89,6 +89,32 @@ dialog::backdrop{background:#0009}
 .fl div{flex:1;min-width:0}
 .fl small{display:block;color:var(--mut)}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--sel);border:1px solid var(--ac);padding:10px 18px;border-radius:10px;display:none;z-index:9}
+.tabs{display:contents}
+.dev-mobile{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+.dev-mobile .top{flex-wrap:wrap;padding:10px 14px}
+.dev-mobile .brand{margin-right:auto;font-size:20px}
+.dev-mobile .tools{width:100%;margin:0}
+.dev-mobile .search,.dev-mobile .search:focus{flex:1;width:auto;min-height:44px}
+.dev-mobile .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;overflow-x:auto;background:#140c0ef8;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.dev-mobile .tabs .nav{flex:1 0 auto;min-width:66px;min-height:56px;padding:6px 10px;font-size:12px;box-shadow:none}
+.dev-mobile .tabs .nav.on{box-shadow:inset 0 3px var(--ac)}
+.dev-mobile .btn{min-height:44px}
+.dev-mobile .page,.dev-mobile .rows,.dev-mobile .ptitle{padding-left:14px;padding-right:14px}
+.dev-mobile .hero{min-height:42vh;padding:28px 16px;gap:0}
+.dev-mobile .hero img,.dev-mobile .ar{display:none}
+.dev-mobile .rail .card{flex-basis:128px}
+.dev-mobile .grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.dev-mobile .heart{width:40px;height:40px}
+.dev-mobile dialog{width:96vw;padding:16px}
+.dev-mobile .mh img{width:90px}
+.dev-tv{zoom:1.3}
+.dev-tv .top,.dev-tv .page,.dev-tv .rows,.dev-tv .ptitle,.dev-tv footer{padding-left:5vw;padding-right:5vw}
+.dev-tv .ar,.dev-tv .petal{display:none}
+.dev-tv .hero{min-height:56vh}
+.dev-tv .rail .card{flex-basis:190px}
+.dev-tv .card{transition:transform .15s,border-color .15s}
+.dev-tv .card:has(:focus-visible){transform:scale(1.07);border-color:var(--ac2);z-index:2}
+.dev-tv :focus-visible{outline:4px solid var(--ac2);outline-offset:3px}
 .petal{position:fixed;top:-8vh;z-index:3;pointer-events:none;border-radius:100% 0 100% 0;opacity:.5;animation:fall linear infinite}
 @keyframes fall{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(55px,55vh) rotate(200deg)}100%{transform:translate(-35px,115vh) rotate(380deg)}}
 @media(prefers-reduced-motion:reduce){.petal{display:none}}
@@ -98,6 +124,7 @@ dialog::backdrop{background:#0009}
 <body>
 <nav class="top">
   <div class="brand"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C5 6 3 13 8 21c5-2 9-9 4-19z" fill="#d98c8f"/><path d="M12 2c3 6 1 13-4 19" fill="none" stroke="#7a4a43" stroke-width="1"/></svg><div>Ani-Me Log<small>beta</small></div></div>
+  <div class="tabs">
   <button class="nav" data-v="home">Home</button>
   <button class="nav" data-v="library">Library</button>
   <button class="nav" data-v="latest">Latest</button>
@@ -105,6 +132,7 @@ dialog::backdrop{background:#0009}
   <button class="nav" data-v="history">History</button>
   <button class="nav" data-v="player">Player</button>
   <button class="nav" data-v="sources">Settings</button>
+  </div>
   <div class="tools"><input class="search" id="q" type="search" placeholder="Search" aria-label="Search titles"><button class="btn sm" data-act="refresh">Refresh</button></div>
 </nav>
 <div class="ptitle"><h1 id="ttl">Home</h1><p id="sub"></p></div>
@@ -134,6 +162,8 @@ const toMs=v=>typeof v==='number'?v*1000:(Date.parse(v)||0);
 const big=u=>(u||'').replace(/\/s\d+(-c)?\//,'/s400/');
 function clean(t){
   t=String(t).trim();let ep='';
+  const sm=t.match(/^Episode\s+(\d+(?:[-–]\d+)?)\s+of\s+(.+?)\s+is\s+out!?$/i);
+  if(sm)return{title:sm[2].trim(),ep:sm[1]};
   const m=t.match(/\b(?:episode|eps?\.?)\s*(\d+)/i);
   if(m){ep=m[1];t=t.slice(0,m.index)}
   t=t.replace(/\s*\[[^\]]*\]/g,'').replace(/\s*[–-]\s*(english|indo)[^]*$/i,'').trim();
@@ -146,14 +176,15 @@ function mapItem(o){
   if(!raw)return null;
   const c=clean(raw);
   return{title:c.title,raw:String(raw),
-    image:first(o,['image','img','poster','cover','thumbnail','thumbnail_480_url','images.jpg.image_url','coverImage.large','attributes.posterImage.small']),
-    link:first(o,['url','siteUrl','link','href'])||(o.attributes&&o.attributes.slug?'https://kitsu.io/anime/'+o.attributes.slug:''),ep:c.ep||first(o,['episode','ep','latest_episode']),
+    image:first(o,['image','img','poster','cover','thumbnail','thumbnail_480_url','images.jpg.image_url','coverImage.large','attributes.posterImage.small'])||(o.identifier?'https://archive.org/services/img/'+o.identifier:''),
+    link:first(o,['url','siteUrl','link','href'])||(o.attributes&&o.attributes.slug?'https://kitsu.io/anime/'+o.attributes.slug:'')||(o.identifier?'https://archive.org/details/'+o.identifier:''),ep:c.ep||first(o,['episode','ep','latest_episode']),
     date:toMs(first(o,['date','published','updated_at','aired.from','attributes.startDate','created_at','created_time']))};
 }
 function findList(d,dep=0){
   if(Array.isArray(d))return d;
   if(!d||typeof d!=='object'||dep>4)return[];
-  for(const k of ['data','items','results','anime','entries','list','media','series'])if(Array.isArray(d[k]))return d[k];
+  if(d.response&&typeof d.response==='object'){const r=findList(d.response,dep+1);if(r.length)return r}
+  for(const k of ['data','items','results','anime','entries','list','media','series','docs'])if(Array.isArray(d[k]))return d[k];
   for(const v of Object.values(d)){const r=findList(v,dep+1);if(r.length)return r}
   return[];
 }
@@ -255,12 +286,37 @@ const PRESETS=[
 {name:'Jikan (MyAnimeList) · Top',url:'https://api.jikan.moe/v4/top/anime'},
 {name:'Jikan (MyAnimeList) · Airing now',url:'https://api.jikan.moe/v4/seasons/now'},
 {name:'Kitsu · Most popular',url:'https://kitsu.io/api/edge/anime?sort=-userCount&page[limit]=20'},
-{name:'Kitsu · Airing now',url:'https://kitsu.io/api/edge/anime?filter[status]=current&sort=-userCount&page[limit]=20'}];
+{name:'Kitsu · Airing now',url:'https://kitsu.io/api/edge/anime?filter[status]=current&sort=-userCount&page[limit]=20'},
+{name:'AnimeSchedule · Sub',url:'https://animeschedule.net/subrss.xml'},
+{name:'AnimeSchedule · Dub',url:'https://animeschedule.net/dubrss.xml'},
+{name:'AnimeSchedule · Raw',url:'https://animeschedule.net/jpnrss.xml'},
+{name:'Internet Archive · Animation',url:'https://archive.org/advancedsearch.php?q=collection%3Aanimationandcartoons&fl%5B%5D=identifier&fl%5B%5D=title&sort%5B%5D=downloads+desc&rows=100&output=json'}];
+let HLSP=null;
+function loadHls(){
+  return HLSP||(HLSP=new Promise((res,rej)=>{
+    if(window.Hls)return res(window.Hls);
+    const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js';
+    sc.onload=()=>res(window.Hls);sc.onerror=()=>{HLSP=null;rej(new Error('hls'))};document.head.appendChild(sc);
+  }));
+}
+function attachHls(){
+  const v=$('#pv');if(!v||!PLAY||!PLAY.e||PLAY.e.type!=='hls')return;
+  const src=PLAY.e.src;
+  if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=src;return}
+  loadHls().then(H=>{
+    if(!H.isSupported())return toast('This browser can’t play streaming video.');
+    const h=new H();h.on(H.Events.ERROR,(e,d)=>{if(d.fatal)toast('The stream failed to load. It may not allow other sites to play it.')});
+    h.loadSource(src);h.attachMedia(v);
+  }).catch(()=>toast('Couldn’t load the video library.'));
+}
 let PLAY=null;
 function embedFor(u){
   let m;
   if((m=u.match(/dailymotion\.com\/(?:embed\/)?video\/([a-z0-9]+)/i))||(m=u.match(/dai\.ly\/([a-z0-9]+)/i)))return{type:'frame',src:'https://www.dailymotion.com/embed/video/'+m[1]};
   if(/rumble\.com\/embed\//i.test(u))return{type:'frame',src:u};
+  if((m=u.match(/(?:youtube\.com\/watch\?(?:[^#]*&)?v=|youtu\.be\/)([\w-]{11})/i)))return{type:'frame',src:'https://www.youtube-nocookie.com/embed/'+m[1]};
+  if((m=u.match(/archive\.org\/(?:details|embed)\/([^/?#]+)/i)))return{type:'frame',src:'https://archive.org/embed/'+m[1]};
+  if(/\.m3u8(\?|$)/i.test(u))return{type:'hls',src:u};
   if(/\.(mp4|webm|ogg)(\?|$)/i.test(u))return{type:'video',src:u};
   if(/rumble\.com\//i.test(u))return{type:'rumble',src:u};
   if(/^https?:\/\//i.test(u))return{type:'page',src:u};
@@ -282,8 +338,8 @@ async function play(u,k,title){
 }
 function playerView(){
   const p=PLAY,en=p&&entryFor(p.k);
-  const frame=p&&p.e?(p.e.type==='video'?`<video controls autoplay src="${safe(p.e.src)}"></video>`:`<iframe src="${safe(p.e.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${p.e.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`)
-    :`<p class="empty">${p?esc(p.msg):'Paste a Dailymotion, Rumble or direct video link below, or choose Play here on any title.'}</p>`;
+  const frame=p&&p.e?((p.e.type==='video'||p.e.type==='hls')?`<video id="pv" controls autoplay playsinline ${p.e.type==='video'?`src="${safe(p.e.src)}"`:''}></video>`:`<iframe src="${safe(p.e.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${p.e.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`)
+    :`<p class="empty">${p?esc(p.msg):'Paste a Dailymotion, Rumble, YouTube, Internet Archive, .m3u8 or video file link below, or choose Play here on any title.'}</p>`;
   const srv=en?en.from.filter(f=>embedFor(f.link||'')).slice(0,12):[];
   return`<div class="panel"><div class="vid">${frame}</div>${p&&p.e&&p.e.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site” below.</p>':''}${p?`<h3 style="margin-bottom:12px">${esc(p.title||'Now playing')}</h3>`:''}
 ${srv.length?`<p class="note">Servers</p><div class="chips">${srv.map(f=>`<button class="chip ${f.link===p.url?'on':''}" data-act="srv" data-u="${esc(f.link)}">${esc(f.src)}${f.ep?' · episode '+esc(f.ep):''}</button>`).join('')}</div>`:''}
@@ -293,7 +349,9 @@ ${p&&p.url?`<p class="note" style="margin-top:10px"><a href="${safe(p.url)}" tar
 const SNIP=`(async()=>{const sleep=t=>new Promise(r=>setTimeout(r,t));let last=0,same=0;while(same<3){window.scrollTo(0,document.body.scrollHeight);document.querySelectorAll('button').forEach(b=>{if(/load more|show more|see more/i.test(b.textContent))b.click()});await sleep(1200);const n=document.querySelectorAll('a[href]').length;same=n===last?same+1:0;last=n}const roots=[document];(function w(n){n.querySelectorAll('*').forEach(e=>{if(e.shadowRoot){roots.push(e.shadowRoot);w(e.shadowRoot)}})})(document);const seen=new Set(),out=[];roots.forEach(r=>r.querySelectorAll('a[href]').forEach(a=>{const h=a.href;if(h===location.href||seen.has(h))return;if(!(/\\/(series|programme|programmes|movie|movies|show|shows|video)\\//i.test(h)||/\\/v[a-z0-9]{5,}-[^\\/]*\\.html/i.test(h)))return;const im=a.querySelector('img');const t=(a.getAttribute('aria-label')||(im&&im.alt)||a.title||a.textContent||'').trim().replace(/\\s+/g,' ');if(!t||t.length>120)return;seen.add(h);out.push({title:t,url:h,image:im?(im.currentSrc||im.src):''})}));const j=JSON.stringify(out,null,1);try{await navigator.clipboard.writeText(j);console.log(out.length+' titles copied. Paste them into Ani-Me Log.')}catch(e){const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([j],{type:'application/json'}));l.download='capture.json';l.click();console.log(out.length+' titles saved as capture.json. Use Import file in Ani-Me Log.')}})()`;
 
 function srcView(){
-  return`<div class="panel"><h3>Add a source</h3>
+  return`<div class="panel"><h3>Display</h3><p class="note">Auto picks the layout for your device. Switch it to preview Windows, mobile or TV. Apps built around this page can set it with ?device=win, ?device=mobile or ?device=tv.</p>
+<div class="chips" style="margin:0">${[['auto','Auto'],['win','Windows'],['mobile','Mobile'],['tv','TV']].map(([v,l])=>`<button class="chip ${(st.device||'auto')===v?'on':''}" data-act="dev" data-d="${v}">${l}${v==='auto'?' ('+DEV+')':''}</button>`).join('')}</div></div>
+<div class="panel"><h3>Add a source</h3>
 <form id="add"><input name="name" placeholder="Name (optional)" aria-label="Source name">
 <input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address">
 <textarea name="raw" rows="3" placeholder="…or paste JSON / RSS text here" aria-label="Pasted data"></textarea>
@@ -350,7 +408,9 @@ function render(){
   document.body.classList.toggle('home',view==='home');
   $('#ttl').textContent=T[0];$('#sub').textContent=T[1];
   if(view!=='home')h=`<div class="page">${h}</div>`;
-  if(document.activeElement?.id!=='proxy')$('#view').innerHTML=h;
+  const pk=view==='player'&&PLAY?PLAY.url+(PLAY.e?PLAY.e.src:''):'';
+  if(pk&&$('#view').dataset.p===pk&&$('.vid video,.vid iframe'))return;
+  if(document.activeElement?.id!=='proxy'){$('#view').innerHTML=h;$('#view').dataset.p=pk;attachHls();if(DEV==='tv'&&document.activeElement===document.body){const f=$('#view .btn.pri,#view .open');if(f)f.focus({preventScroll:true})}}
 }
 
 function modal(e){
@@ -376,6 +436,7 @@ document.addEventListener('click',async ev=>{
   const a=b.dataset.act,s=st.sources.find(x=>x.id===b.dataset.id);
   if(a==='close')DLG.close();
   if(a==='go'){view=b.dataset.v;if(b.dataset.s!==undefined)fsrc=b.dataset.s;render()}
+  if(a==='dev'){st.device=b.dataset.d;save();applyDevice();render()}
   if(a==='scroll')b.parentElement.querySelector('.rail').scrollBy({left:+b.dataset.d*620,behavior:'smooth'});
   if(a==='playbest'){const en=entryFor(b.dataset.k);if(!en)return;const fs=[...en.from].sort((x,y)=>(+y.ep||0)-(+x.ep||0));
     const f=fs.find(f=>f.link&&embedFor(f.link)&&embedFor(f.link).type!=='page')||fs.find(f=>f.link);if(f)play(f.link,en.k,en.title);else modal(en)}
@@ -420,6 +481,43 @@ document.addEventListener('input',ev=>{
   if(ev.target.id==='proxy'){st.proxy=ev.target.value.trim();save()}
 });
 DLG.addEventListener('close',render);
+
+/* device modes: Windows, mobile and TV */
+let DEV='win';
+{const qd=new URLSearchParams(location.search).get('device');if(['win','mobile','tv'].includes(qd))st.device=qd}
+function detectDevice(){
+  const ua=navigator.userAgent;
+  if(/Tizen|Web0S|webOS|SmartTV|SMART-TV|Android TV|AndroidTV|AFT|BRAVIA|CrKey|Roku|HbbTV/i.test(ua))return'tv';
+  if(innerWidth<700||(matchMedia('(pointer:coarse)').matches&&innerWidth<900))return'mobile';
+  return'win';
+}
+function applyDevice(){
+  DEV=st.device&&st.device!=='auto'?st.device:detectDevice();
+  const c=document.body.classList;['dev-win','dev-mobile','dev-tv'].forEach(x=>c.remove(x));c.add('dev-'+DEV);
+}
+addEventListener('resize',()=>{if(!st.device||st.device==='auto')applyDevice()});
+applyDevice();
+/* TV remote: arrow keys move focus to the nearest control, Enter selects, Back goes home */
+document.addEventListener('keydown',ev=>{
+  if(DEV!=='tv')return;
+  const a=document.activeElement,typing=a&&/INPUT|TEXTAREA/.test(a.tagName);
+  const k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[ev.key];
+  if(!k){
+    if(ev.key==='Escape'||(ev.key==='Backspace'&&!typing)){ev.preventDefault();if(DLG.open)DLG.close();else if(view!=='home'){view='home';render()}}
+    return;
+  }
+  if(typing&&k[0])return;
+  const els=[...(DLG.open?DLG:document).querySelectorAll('button:not([disabled]),a[href],input:not([readonly]),textarea')].filter(e=>e.offsetParent!==null);
+  if(!a||!els.includes(a)){if(els[0])els[0].focus();ev.preventDefault();return}
+  const r0=a.getBoundingClientRect(),cx=r0.left+r0.width/2,cy=r0.top+r0.height/2;
+  let best=null,bs=1e9;
+  els.forEach(e=>{
+    if(e===a)return;const r=e.getBoundingClientRect(),x=r.left+r.width/2-cx,y=r.top+r.height/2-cy;
+    const along=x*k[0]+y*k[1];if(along<=1)return;
+    const sc=along+Math.abs(k[0]?y:x)*2.5;if(sc<bs){bs=sc;best=e}
+  });
+  if(best){best.focus();best.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});ev.preventDefault()}
+});
 
 /* drifting petals */
 (()=>{const c=['#d98c8f','#b9686f','#c99a62','#8a5a4a','#e3b0a6'];

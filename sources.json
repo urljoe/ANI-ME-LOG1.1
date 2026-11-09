@@ -32,5 +32,17 @@
   {
     "name": "Donghua Zone",
     "url": "https://www.donghuazone.com/"
+  },
+  {
+    "name": "AnimeSchedule · Sub",
+    "url": "https://animeschedule.net/subrss.xml"
+  },
+  {
+    "name": "AnimeSchedule · Dub",
+    "url": "https://animeschedule.net/dubrss.xml"
+  },
+  {
+    "name": "AnimeSchedule · Raw",
+    "url": "https://animeschedule.net/jpnrss.xml"
   }
 ]

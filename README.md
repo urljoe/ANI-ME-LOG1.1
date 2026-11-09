@@ -26,11 +26,23 @@ Titles that appear in more than one source are merged automatically, so nothing 
 - Not included: AniDB, Simkl and Kurozora need an account or API key, and Anime-Planet has no public API. Add them yourself later if you get a key.
 - The app is meant for catalogues and feeds you have the right to use. It doesn’t include streaming, torrent or download sites.
 
+## Windows, mobile and TV layouts
+
+**Settings → Display** switches the layout: Auto, Windows, Mobile or TV.
+
+- **Windows**: top navigation bar, hero banner, scrolling rows.
+- **Mobile**: bottom tab bar, two-column grids, bigger touch targets.
+- **TV**: larger interface, strong focus highlight, and remote control support (arrow keys move, Enter selects, Back or Esc returns home).
+
+Wrapped apps can force a layout by loading the page with `?device=win`, `?device=mobile` or `?device=tv`. For example, an Electron window can load `index.html?device=win`, and an Android app built with Capacitor can start on `index.html?device=mobile`. An Android TV build uses `?device=tv`.
+
 ## Player and servers
 
 - **Player** plays Dailymotion links, Rumble embed links and direct video files (.mp4, .webm) inside the app. Choose **Play here** on a title, or paste a link.
 - **Settings → Video servers** adds a Dailymotion channel as a source (paste a channel name or link). Its videos then appear in your Library next to your other sources.
 - Rumble has no public feed. Use the capture snippet on a Rumble channel page, or paste single video links into the Player. If Rumble won’t let the app look a link up, use the embed link from Rumble’s Share menu.
+- The Player also plays YouTube and Internet Archive links, and streaming links ending in `.m3u8` (through hls.js, loaded from a CDN when needed). A stream only plays if its host allows other sites to use it.
+- **Quick add** includes AnimeSchedule.net’s public release feeds (sub, dub, raw) and an Internet Archive animation collection. The schedule feeds may need a CORS proxy.
 - Only add channels and links you have the right to watch.
 
 ## Where to find sources
