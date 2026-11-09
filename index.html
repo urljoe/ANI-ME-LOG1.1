@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ani-Me Log</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C5 6 3 13 8 21c5-2 9-9 4-19z' fill='%23d98c8f'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#140c0e;--side:#1a0f12;--card:#22151a;--line:#3b2629;--text:#f4e7e2;--mut:#a98f8b;--ac:#d98c8f;--ac2:#c99a62;--sel:#432a2e;--serif:Georgia,"Times New Roman",serif}
 *{box-sizing:border-box}
@@ -20,14 +21,16 @@ button,input,textarea{font:inherit;color:inherit}
 .tools{margin-left:auto;display:flex;gap:10px;align-items:center}
 .search{width:200px;background:#ffffff14;border:1px solid var(--line);border-radius:999px;padding:8px 16px;outline:0;transition:width .2s}
 .search:focus{width:300px}
-.btn{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 16px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 16px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
 .btn:hover{border-color:var(--ac)}
 .btn.pri{background:var(--ac);border-color:var(--ac);color:#2a1216;font-weight:600}
 .btn.sm{padding:5px 11px;font-size:13px}
+.btn svg,.bmc svg{fill:none;stroke:currentColor;stroke-width:2}
+.btn.on svg,.bmc.on svg{fill:currentColor}
 .ptitle{padding:28px 32px 0}
 .ptitle h1{margin:0;font:700 28px var(--serif)}
 .ptitle p{margin:0;color:var(--mut);font-size:13px}
-body.home .ptitle{display:none}
+body.nohead .ptitle{display:none}
 section{flex:1}
 .page{padding:24px 32px}
 .hero{position:relative;min-height:60vh;display:flex;align-items:center;gap:56px;padding:48px 32px 48px 8vw;overflow:hidden;border-bottom:1px solid var(--line)}
@@ -54,11 +57,12 @@ section{flex:1}
 .card:hover{border-color:var(--ac)}
 .poster{aspect-ratio:2/3;background:#2e1c20;position:relative;display:grid;place-items:center;font:40px var(--serif);color:var(--ac)}
 .poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.heart{position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:0;background:#140c0ecc;color:var(--ac);font-size:18px;cursor:pointer}
+.bmc{position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:0;background:#140c0ecc;color:var(--ac);cursor:pointer;display:grid;place-items:center}
 .cb{padding:10px 12px}
 .cb b{display:block;font-size:14px;line-height:1.3}
 .cb small{color:var(--mut);font-size:12px}
 .tag{display:inline-block;background:var(--sel);border-radius:6px;padding:1px 7px;margin:4px 4px 0 0;font-size:11px}
+.tag.hi{background:var(--ac);color:#2a1216}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
 .chip{background:none;border:1px solid var(--line);border-radius:999px;padding:4px 14px;cursor:pointer;color:var(--mut);font-size:13px}
 .chip.on{background:var(--sel);color:var(--text);border-color:var(--ac)}
@@ -75,20 +79,29 @@ h3{margin:0;font:700 19px var(--serif)}
 .src small{display:block;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .err{color:#f0a08f!important;white-space:normal!important}
 .empty{color:var(--mut);padding:40px 0;text-align:center}
-.vid{aspect-ratio:16/9;background:#0b0607;border-radius:12px;overflow:hidden;margin-bottom:14px;display:grid;place-items:center}
-.vid iframe,.vid video{width:100%;height:100%;border:0}
-footer{padding:20px 32px;border-top:1px solid var(--line);color:var(--mut);font-size:13px;text-align:center;letter-spacing:.04em}
-footer small{display:block;font-size:12px;letter-spacing:0}
-dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:24px;width:min(640px,92vw);max-height:86vh}
-dialog::backdrop{background:#0009}
-.mh{display:flex;gap:20px;margin-bottom:22px}
-.mh img{width:120px;aspect-ratio:2/3;object-fit:cover;border-radius:10px}
-.mh h2{margin:0 0 6px;font:700 24px var(--serif)}
-.fl{list-style:none;margin:14px 0 0;padding:0}
+.sy{display:flex;gap:32px;align-items:flex-start;margin:6px 0 28px}
+.sy img{width:220px;aspect-ratio:2/3;object-fit:cover;border-radius:8px;box-shadow:0 14px 40px #0009;flex:none}
+.sy h1{margin:0 0 8px;font:700 clamp(28px,4vw,46px)/1.1 var(--serif)}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+.syn{max-width:70ch;color:#dccbc5;margin:12px 0 16px}
+.eps{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:10px;margin-bottom:28px}
+.ep{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;font-weight:600;position:relative}
+.ep small{display:block;font-weight:400;color:var(--mut);font-size:11px}
+.ep:hover{border-color:var(--ac)}
+.ep.seen{opacity:.42;background:#1a1012}
+.ep.seen::after{content:"✓";position:absolute;top:3px;right:7px;font-size:11px;color:var(--ac2)}
+.ep.off{opacity:.25;cursor:default;border-style:dashed}
+.fl{list-style:none;margin:0 0 24px;padding:0}
 .fl li{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
 .fl div{flex:1;min-width:0}
 .fl small{display:block;color:var(--mut)}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--sel);border:1px solid var(--ac);padding:10px 18px;border-radius:10px;display:none;z-index:9}
+.vid{aspect-ratio:16/9;background:#0b0607;border-radius:12px;overflow:hidden;margin-bottom:14px;display:grid;place-items:center}
+.vid iframe,.vid video{width:100%;height:100%;border:0}
+.phd{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+footer{padding:20px 32px;border-top:1px solid var(--line);color:var(--mut);font-size:13px;text-align:center;letter-spacing:.04em}
+dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:22px;width:min(1000px,96vw);max-height:94vh}
+dialog::backdrop{background:#000c}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--sel);border:1px solid var(--ac);padding:10px 18px;border-radius:10px;display:none;z-index:99}
 .tabs{display:contents}
 .dev-mobile{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 .dev-mobile .top{flex-wrap:wrap;padding:10px 14px}
@@ -104,9 +117,9 @@ dialog::backdrop{background:#0009}
 .dev-mobile .hero img,.dev-mobile .ar{display:none}
 .dev-mobile .rail .card{flex-basis:128px}
 .dev-mobile .grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
-.dev-mobile .heart{width:40px;height:40px}
-.dev-mobile dialog{width:96vw;padding:16px}
-.dev-mobile .mh img{width:90px}
+.dev-mobile .bmc{width:40px;height:40px}
+.dev-mobile dialog{width:98vw;padding:14px}
+.dev-mobile .sy{flex-direction:column;gap:16px}.dev-mobile .sy img{width:140px}
 .dev-tv{zoom:1.3}
 .dev-tv .top,.dev-tv .page,.dev-tv .rows,.dev-tv .ptitle,.dev-tv footer{padding-left:5vw;padding-right:5vw}
 .dev-tv .ar,.dev-tv .petal{display:none}
@@ -118,7 +131,6 @@ dialog::backdrop{background:#0009}
 .petal{position:fixed;top:-8vh;z-index:3;pointer-events:none;border-radius:100% 0 100% 0;opacity:.5;animation:fall linear infinite}
 @keyframes fall{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(55px,55vh) rotate(200deg)}100%{transform:translate(-35px,115vh) rotate(380deg)}}
 @media(prefers-reduced-motion:reduce){.petal{display:none}}
-@media(max-width:800px){.top{flex-wrap:wrap;padding:10px 14px}.brand{margin-right:auto}.tools{width:100%;margin:0}.search,.search:focus{flex:1;width:auto}.page,.rows,.ptitle{padding-left:16px;padding-right:16px}.hero{padding:28px 16px;min-height:44vh}.hero img{display:none}.ar{display:none}}
 </style>
 </head>
 <body>
@@ -130,36 +142,47 @@ dialog::backdrop{background:#0009}
   <button class="nav" data-v="latest">Latest</button>
   <button class="nav" data-v="watchlist">Watchlist</button>
   <button class="nav" data-v="history">History</button>
-  <button class="nav" data-v="player">Player</button>
   <button class="nav" data-v="sources">Settings</button>
   </div>
   <div class="tools"><input class="search" id="q" type="search" placeholder="Search" aria-label="Search titles"><button class="btn sm" data-act="refresh">Refresh</button></div>
 </nav>
 <div class="ptitle"><h1 id="ttl">Home</h1><p id="sub"></p></div>
 <section id="view"></section>
-<footer>thewiltedpetals.blooms<small id="side"></small></footer>
-<dialog id="dlg"></dialog>
+<footer>thewiltedpetals.blooms</footer>
+<dialog id="pd"></dialog>
 <div id="toast" role="status"></div>
 <script>
-const K='animelog.v1',$=s=>document.querySelector(s),DLG=$('#dlg');
-let st={sources:[],proxy:'',watch:{},hist:[]},view='home',q='',fsrc='',LIB={map:new Map(),list:[]};
+const K='animelog.v1',$=s=>document.querySelector(s),PD=$('#pd');
+let st={sources:[],proxy:'',auto:true,watch:{},hist:[],seen:{},device:'auto'},view='home',prev='home',CUR='',q='',fsrc='',LIM=120,LIB={map:new Map(),list:[]},PLAY=null,DEV='win',HLSP=null;
 try{Object.assign(st,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(st))}catch(e){toast('Browser storage is full, so this session won’t be cached.')}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safe=u=>/^https?:\/\//i.test(u||'')?esc(u):'';
+const sleep=t=>new Promise(r=>setTimeout(r,t));
+const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' days ago'};
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3500)}
+const num=x=>parseFloat(x)||0;
 
-/* hidden duplicate scanner: one normalised key per title */
+/* hidden duplicate scanner */
 const norm=t=>String(t).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
   .replace(/[(\[][^)\]]*(dub|sub|raw|uncensored)[^)\]]*[)\]]/g,' ')
   .replace(/\b(english dub|dubbed|subbed|uncensored)\b/g,' ')
   .replace(/[^a-z0-9]+/g,' ').trim();
 
-/* parsing: any JSON shape, RSS/Atom, Blogger */
+/* sub / dub labels from titles and source names */
+function subs(raw,src){
+  const o=new Set(),all=raw+' '+src;
+  String(raw).replace(/\b(english|indo(?:nesian)?|spanish|portuguese|arabic|thai|vietnamese|malay|french|german|italian|russian|turkish|hindi|chinese)\s+(sub|dub)s?\b/gi,(m,l,t)=>{l=/^indo/i.test(l)?'Indo':l[0].toUpperCase()+l.slice(1).toLowerCase();o.add(l+' '+t.toLowerCase())});
+  if(!o.size){if(/\bdub(bed)?\b/i.test(all))o.add('Dub');if(/\bsub(bed|s)?\b/i.test(all))o.add('Sub');if(/\braw\b/i.test(all))o.add('Raw')}
+  return[...o];
+}
+
+/* parsing */
 const get=(o,p)=>p.split('.').reduce((a,k)=>a==null?a:a[k],o);
 const first=(o,ps)=>{for(const p of ps){const v=get(o,p);if(v&&typeof v!=='object')return v}return ''};
 const toMs=v=>typeof v==='number'?v*1000:(Date.parse(v)||0);
 const big=u=>(u||'').replace(/\/s\d+(-c)?\//,'/s400/');
+const plain=s=>String(s||'').replace(/<br\s*\/?>/gi,' ').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().slice(0,700);
 function clean(t){
   t=String(t).trim();let ep='';
   const sm=t.match(/^Episode\s+(\d+(?:[-–]\d+)?)\s+of\s+(.+?)\s+is\s+out!?$/i);
@@ -175,10 +198,15 @@ function mapItem(o){
   const raw=first(o,['title','name','title.english','title.romaji','title_english','attributes.canonicalTitle']);
   if(!raw)return null;
   const c=clean(raw);
+  let sc=num(first(o,['score','averageScore','attributes.averageRating']));if(sc>10)sc/=10;
   return{title:c.title,raw:String(raw),
     image:first(o,['image','img','poster','cover','thumbnail','thumbnail_480_url','images.jpg.image_url','coverImage.large','attributes.posterImage.small'])||(o.identifier?'https://archive.org/services/img/'+o.identifier:''),
-    link:first(o,['url','siteUrl','link','href'])||(o.attributes&&o.attributes.slug?'https://kitsu.io/anime/'+o.attributes.slug:'')||(o.identifier?'https://archive.org/details/'+o.identifier:''),ep:c.ep||first(o,['episode','ep','latest_episode']),
-    date:toMs(first(o,['date','published','updated_at','aired.from','attributes.startDate','created_at','created_time']))};
+    link:first(o,['url','siteUrl','link','href'])||(o.attributes&&o.attributes.slug?'https://kitsu.io/anime/'+o.attributes.slug:'')||(o.identifier?'https://archive.org/details/'+o.identifier:''),
+    ep:c.ep||first(o,['episode','ep','latest_episode']),
+    date:toMs(first(o,['date','published','updated_at','aired.from','attributes.startDate','created_at','created_time'])),
+    desc:plain(first(o,['synopsis','description','summary','attributes.synopsis'])),
+    tags:(Array.isArray(o.genres)?o.genres.map(g=>typeof g==='string'?g:g&&g.name).filter(Boolean):[]).slice(0,6),
+    total:num(first(o,['episodes','attributes.episodeCount','episodeCount'])),score:sc};
 }
 function findList(d,dep=0){
   if(Array.isArray(d))return d;
@@ -203,95 +231,119 @@ function parseText(txt){
   return findList(d).map(mapItem).filter(Boolean);
 }
 
-/* loading: a bare site address finds its own feed */
-async function grab(u,body){
-  const r=await fetch(st.proxy?st.proxy+encodeURIComponent(u):u,body?{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(body)}:undefined);
+/* network: direct first, then (optionally) a background proxy scout that remembers what works */
+const PROXIES=[u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)];
+const BAD=new Set();
+async function req(a){
+  const o={};
+  if(AbortSignal.timeout)o.signal=AbortSignal.timeout(14000);
+  if(a.body)Object.assign(o,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(a.body)});
+  const r=await fetch(a.url,o);
   if(!r.ok)throw new Error('HTTP '+r.status);
   return r.text();
+}
+async function grab(u,body){
+  const host=new URL(u).hostname,list=[];
+  if(st.proxy)list.push({url:st.proxy+encodeURIComponent(u),body});
+  else if(!BAD.has(host)){list.push({url:u,body});if(body&&body.query)list.push({url:u+'?query='+encodeURIComponent(body.query)})}
+  if(st.auto!==false)[0,1,2].sort((a,b)=>(b===st.pok)-(a===st.pok)).forEach(i=>{if(!body||i===1)list.push({url:PROXIES[i](u),body,px:i})});
+  let last;
+  for(const a of list){
+    try{const t=await req(a);if(a.px!==undefined)st.pok=a.px;return t}
+    catch(e){last=e;if(a.px===undefined&&!st.proxy)BAD.add(host)}
+  }
+  throw last||new Error('No answer');
 }
 function jsonp(u){
   return new Promise((res,rej)=>{
     const cb='_alcb'+Date.now(),sc=document.createElement('script');
     const done=()=>{clearTimeout(t);delete window[cb];sc.remove()};
-    const t=setTimeout(()=>{done();rej(new Error('The source took too long to respond.'))},15000);
+    const t=setTimeout(()=>{done();rej(new Error('timeout'))},15000);
     window[cb]=d=>{done();res(d)};
-    sc.onerror=()=>{done();rej(new Error('The source blocked the request or isn’t a Blogger site.'))};
+    sc.onload=()=>setTimeout(()=>{if(window[cb]){done();rej(new Error('not jsonp'))}},60);
+    sc.onerror=()=>{done();rej(new Error('blocked'))};
     sc.src=u+'&callback='+cb;document.head.appendChild(sc);
   });
 }
+async function fetchSite(s){
+  const o=new URL(s.url);let last;
+  try{ /* Blogger sites allow script-tag loading, which needs no proxy */
+    let es=[];
+    for(let p=0;p<4;p++){const d=await jsonp(o.origin+'/feeds/posts/default?alt=json-in-script&max-results=500&start-index='+(p*500+1));const g=d.feed.entry||[];es=es.concat(g);if(g.length<500)break}
+    const it=es.map(e=>{const l=(e.link||[]).find(x=>x.rel==='alternate'),raw=e.title.$t,c=clean(raw);
+      return{title:c.title,raw,ep:c.ep,link:l?l.href:'',image:big((e.media$thumbnail||{}).url),date:Date.parse((e.published||{}).$t)||0}}).filter(i=>i.title);
+    if(it.length)return it;
+  }catch(e){last=e}
+  for(const u of [o.origin+'/feeds/posts/default?alt=rss&max-results=500',o.origin+'/feed',o.origin+'/rss.xml',o.origin+'/feed.xml',s.url]){
+    try{const it=parseText(await grab(u));if(it.length)return it}catch(e){last=e}
+  }
+  throw last||new Error('No feed found at this address. Try the site’s RSS or JSON address.');
+}
+const fill=(t,p,s)=>t.replace(/__PAGE__/g,p).replace(/__OFFSET__/g,(p-1)*(s.size||20));
 async function fetchItems(s){
-  const o=new URL(s.url),root=!s.body&&o.pathname==='/'&&!o.search;
-  const tries=root?[o.origin+'/feeds/posts/default?alt=rss&max-results=500',o.origin+'/feed',o.origin+'/rss.xml',o.origin+'/feed.xml',s.url]:[s.url];
-  let last;
-  for(const u of tries){
-    try{const txt=await grab(u,s.body);let it=[];try{it=parseText(txt)}catch(e){}if(it.length)return it}catch(e){last=e}
+  const t=new URL(fill(s.url,1,s));
+  if(!s.body&&t.pathname==='/'&&!t.search)return fetchSite(s);
+  let all=[];
+  for(let p=1;p<=(s.pages||1);p++){
+    let it;
+    try{it=parseText(await grab(fill(s.url,p,s),s.body?JSON.parse(fill(JSON.stringify(s.body),p,s)):null))}catch(e){if(p===1)throw e;break}
+    all=all.concat(it);if(!it.length)break;
+    if(p<(s.pages||1))await sleep(s.gap||700);
   }
-  if(root){
-    try{
-      let es=[];
-      for(let p=0;p<4;p++){const d=await jsonp(o.origin+'/feeds/posts/default?alt=json-in-script&max-results=500&start-index='+(p*500+1));const g=d.feed.entry||[];es=es.concat(g);if(g.length<500)break}
-      const it=es.map(e=>{
-        const l=(e.link||[]).find(x=>x.rel==='alternate'),raw=e.title.$t,c=clean(raw);
-        return{title:c.title,raw,ep:c.ep,link:l?l.href:'',image:big((e.media$thumbnail||{}).url),date:Date.parse((e.published||{}).$t)||0};
-      }).filter(i=>i.title);
-      if(it.length)return it;
-    }catch(e){last=last||e}
-  }
-  throw last||new Error('No feed found at this address. Try the site’s RSS or JSON URL.');
+  return all;
 }
 async function load(s){
   s.status='loading';render();
   try{
     s.items=s.raw!=null?parseText(s.raw):await fetchItems(s);
+    s.items.forEach(i=>{i.sub=subs(i.raw||i.title,s.name)});
     s.status='ok';s.error='';s.updated=Date.now();
     if(!s.items.length)s.error='Loaded, but no titles were found in this source.';
   }catch(e){
     s.status='error';
-    s.error=e.message==='Failed to fetch'?'The source blocked the request (CORS) or you’re offline. Try a proxy under Sources.':e.message;
+    s.error=/Failed to fetch|HTTP|aborted|timeout|blocked|No answer/i.test(e.message)?'Blocked or unreachable'+(st.auto===false?'. Turn on auto proxy in Settings.':' (direct and proxy attempts failed).'):e.message;
   }
   save();render();
 }
-const refreshAll=()=>Promise.all(st.sources.filter(s=>s.url).map(load));
+async function runAll(list){
+  const g={};list.forEach(s=>{let h='x';try{h=new URL(s.url).hostname}catch(e){}(g[h]=g[h]||[]).push(s)});
+  await Promise.all(Object.values(g).map(async a=>{for(const s of a){await load(s);await sleep(500)}}));
+}
 
-/* merge every source into one list (duplicates fold together silently) */
+/* merge every source into one list */
 function build(){
   const m=new Map();
   st.sources.forEach(s=>(s.items||[]).forEach((i,idx)=>{
     const k=norm(i.title);if(!k)return;
     let e=m.get(k);
-    if(!e){e={k,title:i.title,image:i.image,ep:i.ep,date:i.date||0,ord:idx,from:[]};m.set(k,e)}
-    else{e.image=e.image||i.image;if(+i.ep>(+e.ep||0))e.ep=i.ep;e.date=Math.max(e.date,i.date||0);e.ord=Math.min(e.ord,idx)}
+    if(!e){e={k,title:i.title,image:i.image,ep:i.ep,date:i.date||0,ord:idx,desc:'',tags:[],total:0,score:0,from:[]};m.set(k,e)}
+    else{e.image=e.image||i.image;if(num(i.ep)>num(e.ep))e.ep=i.ep;e.date=Math.max(e.date,i.date||0);e.ord=Math.min(e.ord,idx)}
+    if((i.desc||'').length>e.desc.length)e.desc=i.desc;
+    (i.tags||[]).forEach(t=>{if(!e.tags.includes(t))e.tags.push(t)});
+    e.total=Math.max(e.total,i.total||0);e.score=Math.max(e.score,i.score||0);
     const raw=i.raw||i.title;
-    if(!e.from.some(f=>f.src===s.name&&f.raw===raw&&f.link===i.link))e.from.push({src:s.name,raw,ep:i.ep,link:i.link});
+    if(!e.from.some(f=>f.src===s.name&&f.raw===raw&&f.link===i.link))e.from.push({src:s.name,raw,ep:i.ep,link:i.link,sub:i.sub||[]});
   }));
   return{map:m,list:[...m.values()].sort((a,b)=>a.title.localeCompare(b.title))};
 }
-const snap=e=>({k:e.k,title:e.title,image:e.image,ep:e.ep,from:e.from.slice(0,12)});
+const snap=e=>({k:e.k,title:e.title,image:e.image,ep:e.ep,from:(e.from||[]).slice(0,12)});
 const wl=k=>!!st.watch[k];
 const entryFor=k=>LIB.map.get(k)||st.watch[k]||st.hist.find(h=>h.k===k);
+const epsOf=e=>{const m=new Map();(e.from||[]).forEach(f=>{if(!f.ep)return;const k=String(f.ep);if(!m.has(k))m.set(k,[]);m.get(k).push(f)});return m};
 
-/* rendering */
-const card=e=>`<article class="card"><button class="open" data-open="${esc(e.k)}"><div class="poster">${esc((e.title||'?')[0])}${e.image?`<img src="${safe(e.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</div>
-<div class="cb"><b>${esc(e.title)}</b>${e.ep?`<small>Episode ${esc(e.ep)}</small>`:''}<div>${[...new Set(e.from.map(f=>f.src))].map(n=>`<span class="tag">${esc(n)}</span>`).join('')}</div></div></button>
-<button class="heart" data-act="wl" data-k="${esc(e.k)}" aria-label="Toggle watchlist" aria-pressed="${wl(e.k)}">${wl(e.k)?'♥':'♡'}</button></article>`;
-const rail=(t,v,l,src)=>`<h3 class="rh"><button data-act="go" data-v="${v}" data-s="${esc(src||'')}">${esc(t)} »</button></h3><div class="rw"><button class="ar l" data-act="scroll" data-d="-1" aria-label="Scroll left">‹</button><div class="rail">${l.map(card).join('')}</div><button class="ar r" data-act="scroll" data-d="1" aria-label="Scroll right">›</button></div>`;
-const grid=(l,msg)=>l.length?`<div class="grid">${l.map(card).join('')}</div>`:`<p class="empty">${msg||'Nothing here yet.'}</p>`;
-const rowHead=(t,v)=>`<div class="rh"><h3>${t}</h3><button class="btn sm" data-act="go" data-v="${v}">See all</button></div>`;
-const chips=()=>`<div class="chips"><button class="chip ${fsrc?'':'on'}" data-act="fs" data-s="">All sources</button>${st.sources.map(s=>`<button class="chip ${fsrc===s.name?'on':''}" data-act="fs" data-s="${esc(s.name)}">${esc(s.name)}</button>`).join('')}</div>`;
-
-const AL=(sort,x='')=>({query:`query{Page(perPage:50){media(type:ANIME,${x}sort:${sort}){title{romaji english}coverImage{large}siteUrl}}}`});
-const PRESETS=[
-{name:'AniList · Trending',url:'https://graphql.anilist.co',body:AL('TRENDING_DESC')},
-{name:'AniList · Airing now',url:'https://graphql.anilist.co',body:AL('POPULARITY_DESC','status:RELEASING,')},
-{name:'Jikan (MyAnimeList) · Top',url:'https://api.jikan.moe/v4/top/anime'},
-{name:'Jikan (MyAnimeList) · Airing now',url:'https://api.jikan.moe/v4/seasons/now'},
-{name:'Kitsu · Most popular',url:'https://kitsu.io/api/edge/anime?sort=-userCount&page[limit]=20'},
-{name:'Kitsu · Airing now',url:'https://kitsu.io/api/edge/anime?filter[status]=current&sort=-userCount&page[limit]=20'},
-{name:'AnimeSchedule · Sub',url:'https://animeschedule.net/subrss.xml'},
-{name:'AnimeSchedule · Dub',url:'https://animeschedule.net/dubrss.xml'},
-{name:'AnimeSchedule · Raw',url:'https://animeschedule.net/jpnrss.xml'},
-{name:'Internet Archive · Animation',url:'https://archive.org/advancedsearch.php?q=collection%3Aanimationandcartoons&fl%5B%5D=identifier&fl%5B%5D=title&sort%5B%5D=downloads+desc&rows=100&output=json'}];
-let HLSP=null;
+/* embeds and playback */
+function embedFor(u){
+  let m;
+  if((m=u.match(/dailymotion\.com\/(?:embed\/)?video\/([a-z0-9]+)/i))||(m=u.match(/dai\.ly\/([a-z0-9]+)/i)))return{type:'frame',src:'https://www.dailymotion.com/embed/video/'+m[1]};
+  if(/rumble\.com\/embed\//i.test(u))return{type:'frame',src:u};
+  if((m=u.match(/(?:youtube\.com\/watch\?(?:[^#]*&)?v=|youtu\.be\/)([\w-]{11})/i)))return{type:'frame',src:'https://www.youtube-nocookie.com/embed/'+m[1]};
+  if((m=u.match(/archive\.org\/(?:details|embed)\/([^/?#]+)/i)))return{type:'frame',src:'https://archive.org/embed/'+m[1]};
+  if(/\.m3u8(\?|$)/i.test(u))return{type:'hls',src:u};
+  if(/\.(mp4|webm|ogg)(\?|$)/i.test(u))return{type:'video',src:u};
+  if(/rumble\.com\//i.test(u))return{type:'rumble',src:u};
+  if(/^https?:\/\//i.test(u))return{type:'page',src:u};
+  return null;
+}
 function loadHls(){
   return HLSP||(HLSP=new Promise((res,rej)=>{
     if(window.Hls)return res(window.Hls);
@@ -309,153 +361,211 @@ function attachHls(){
     h.loadSource(src);h.attachMedia(v);
   }).catch(()=>toast('Couldn’t load the video library.'));
 }
-let PLAY=null;
-function embedFor(u){
-  let m;
-  if((m=u.match(/dailymotion\.com\/(?:embed\/)?video\/([a-z0-9]+)/i))||(m=u.match(/dai\.ly\/([a-z0-9]+)/i)))return{type:'frame',src:'https://www.dailymotion.com/embed/video/'+m[1]};
-  if(/rumble\.com\/embed\//i.test(u))return{type:'frame',src:u};
-  if((m=u.match(/(?:youtube\.com\/watch\?(?:[^#]*&)?v=|youtu\.be\/)([\w-]{11})/i)))return{type:'frame',src:'https://www.youtube-nocookie.com/embed/'+m[1]};
-  if((m=u.match(/archive\.org\/(?:details|embed)\/([^/?#]+)/i)))return{type:'frame',src:'https://archive.org/embed/'+m[1]};
-  if(/\.m3u8(\?|$)/i.test(u))return{type:'hls',src:u};
-  if(/\.(mp4|webm|ogg)(\?|$)/i.test(u))return{type:'video',src:u};
-  if(/rumble\.com\//i.test(u))return{type:'rumble',src:u};
-  if(/^https?:\/\//i.test(u))return{type:'page',src:u};
-  return null;
+function pview(){
+  const p=PLAY,e=p.e;
+  const frame=e?((e.type==='video'||e.type==='hls')?`<video id="pv" controls autoplay playsinline ${e.type==='video'?`src="${safe(e.src)}"`:''}></video>`
+    :`<iframe src="${safe(e.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${e.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`)
+    :`<p class="empty">${esc(p.msg)}</p>`;
+  return`<div class="phd"><h3>${esc(p.title||'Now playing')}${p.ep?' · Episode '+esc(p.ep):''}</h3><button class="btn sm" data-act="pclose">Close</button></div>
+<div class="vid">${frame}</div>${e&&e.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site”.</p>':''}
+${p.alts.length>1?`<p class="note">Servers</p><div class="chips">${p.alts.map(f=>`<button class="chip ${f.link===p.url?'on':''}" data-act="srv" data-u="${esc(f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div>`:''}
+<p class="note"><a href="${safe(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">Open on its own site</a></p>`;
 }
-async function play(u,k,title){
-  if(DLG.open)DLG.close();
-  {const n0=entryFor(k);if(n0){st.hist=[snap(n0),...st.hist.filter(h=>h.k!==n0.k)].slice(0,100);save()}}
-  const e=embedFor(u);PLAY={k,title,url:u,e,msg:e?'':'This link can’t be played inside the app. Use Open to watch it on its own site.'};
-  view='player';render();
+function showP(){PD.innerHTML=pview();if(!PD.open)PD.showModal();attachHls()}
+async function play(u,k,title,ep){
+  const en=entryFor(k);
+  if(en){st.hist=[snap(en),...st.hist.filter(h=>h.k!==en.k)].slice(0,100);save()}
+  const e=embedFor(u);
+  const alts=((en&&en.from)||[]).filter(f=>f.link&&(!ep||String(f.ep)===String(ep))).slice(0,12);
+  PLAY={k,title,ep,url:u,e,alts,msg:'This link can’t be played inside the app. Use “Open on its own site”.'};
+  showP();
   if(e&&e.type==='rumble'){
     try{
       const r=await fetch('https://rumble.com/api/Media/oembed.json?url='+encodeURIComponent(u));
       const m=String((await r.json()).html||'').match(/src="([^"]+)"/);if(!m)throw 0;
       PLAY.e={type:'frame',src:m[1]};
-    }catch(x){PLAY.e=null;PLAY.msg='Rumble didn’t let the app look this video up. On Rumble click Share, then Embed, and paste the embed link (rumble.com/embed/…) below.'}
-    render();
+    }catch(x){PLAY.e=null;PLAY.msg='Rumble didn’t let the app look this video up. Use “Open on its own site”.'}
+    showP();
   }
 }
-function playerView(){
-  const p=PLAY,en=p&&entryFor(p.k);
-  const frame=p&&p.e?((p.e.type==='video'||p.e.type==='hls')?`<video id="pv" controls autoplay playsinline ${p.e.type==='video'?`src="${safe(p.e.src)}"`:''}></video>`:`<iframe src="${safe(p.e.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${p.e.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`)
-    :`<p class="empty">${p?esc(p.msg):'Paste a Dailymotion, Rumble, YouTube, Internet Archive, .m3u8 or video file link below, or choose Play here on any title.'}</p>`;
-  const srv=en?en.from.filter(f=>embedFor(f.link||'')).slice(0,12):[];
-  return`<div class="panel"><div class="vid">${frame}</div>${p&&p.e&&p.e.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site” below.</p>':''}${p?`<h3 style="margin-bottom:12px">${esc(p.title||'Now playing')}</h3>`:''}
-${srv.length?`<p class="note">Servers</p><div class="chips">${srv.map(f=>`<button class="chip ${f.link===p.url?'on':''}" data-act="srv" data-u="${esc(f.link)}">${esc(f.src)}${f.ep?' · episode '+esc(f.ep):''}</button>`).join('')}</div>`:''}
-<form id="pl" class="row"><input name="u" style="flex:1;min-width:200px" placeholder="Paste a Dailymotion, Rumble or video file link" aria-label="Video link"><button class="btn pri" type="submit">Play</button></form>
-${p&&p.url?`<p class="note" style="margin-top:10px"><a href="${safe(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--ac)">Open on its own site</a></p>`:''}</div>`;
+function markSeen(k,ep){
+  const s=st.seen[k]=st.seen[k]||{eps:{},last:null};
+  s.eps[ep]=Date.now();s.last={ep,at:Date.now()};
+  if(st.watch[k]&&st.watch[k].tag==='Plan to watch')st.watch[k].tag='Watching';
+  save();
 }
-const SNIP=`(async()=>{const sleep=t=>new Promise(r=>setTimeout(r,t));let last=0,same=0;while(same<3){window.scrollTo(0,document.body.scrollHeight);document.querySelectorAll('button').forEach(b=>{if(/load more|show more|see more/i.test(b.textContent))b.click()});await sleep(1200);const n=document.querySelectorAll('a[href]').length;same=n===last?same+1:0;last=n}const roots=[document];(function w(n){n.querySelectorAll('*').forEach(e=>{if(e.shadowRoot){roots.push(e.shadowRoot);w(e.shadowRoot)}})})(document);const seen=new Set(),out=[];roots.forEach(r=>r.querySelectorAll('a[href]').forEach(a=>{const h=a.href;if(h===location.href||seen.has(h))return;if(!(/\\/(series|programme|programmes|movie|movies|show|shows|video)\\//i.test(h)||/\\/v[a-z0-9]{5,}-[^\\/]*\\.html/i.test(h)))return;const im=a.querySelector('img');const t=(a.getAttribute('aria-label')||(im&&im.alt)||a.title||a.textContent||'').trim().replace(/\\s+/g,' ');if(!t||t.length>120)return;seen.add(h);out.push({title:t,url:h,image:im?(im.currentSrc||im.src):''})}));const j=JSON.stringify(out,null,1);try{await navigator.clipboard.writeText(j);console.log(out.length+' titles copied. Paste them into Ani-Me Log.')}catch(e){const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([j],{type:'application/json'}));l.download='capture.json';l.click();console.log(out.length+' titles saved as capture.json. Use Import file in Ani-Me Log.')}})()`;
+function playEp(e,ep){
+  const l=epsOf(e).get(String(ep))||[];
+  const f=l.find(x=>x.link&&embedFor(x.link).type!=='page')||l.find(x=>x.link);
+  if(!f)return toast('No link for that episode yet.');
+  markSeen(e.k,String(ep));play(f.link,e.k,e.title,String(ep));render();
+}
 
+/* rendering */
+const BM='<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
+const card=e=>{const w=st.watch[e.k],srcs=[...new Set((e.from||[]).map(f=>f.src))].slice(0,2),sb=[...new Set((e.from||[]).flatMap(f=>f.sub||[]))].slice(0,2);
+return`<article class="card"><button class="open" data-open="${esc(e.k)}"><div class="poster">${esc((e.title||'?')[0])}${e.image?`<img src="${safe(e.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</div>
+<div class="cb"><b>${esc(e.title)}</b>${e.ep?`<small>Episode ${esc(e.ep)}</small>`:''}<div>${w&&w.tag?`<span class="tag hi">${esc(w.tag)}</span>`:''}${sb.map(n=>`<span class="tag">${esc(n)}</span>`).join('')}${srcs.map(n=>`<span class="tag">${esc(n)}</span>`).join('')}</div></div></button>
+<button class="bmc ${w?'on':''}" data-act="wl" data-k="${esc(e.k)}" aria-label="Bookmark" aria-pressed="${!!w}">${BM}</button></article>`};
+const grid=(l,msg)=>l.length?`<div class="grid">${l.map(card).join('')}</div>`:`<p class="empty">${msg||'Nothing here yet.'}</p>`;
+const more=l=>l.length>LIM?`<div class="row" style="justify-content:center;margin-bottom:24px"><button class="btn" data-act="more">Show more (${l.length-LIM} left)</button></div>`:'';
+const rail=(t,v,l,src)=>`<h3 class="rh"><button data-act="go" data-v="${v}" data-s="${esc(src||'')}">${esc(t)} »</button></h3><div class="rw"><button class="ar l" data-act="scroll" data-d="-1" aria-label="Scroll left">‹</button><div class="rail">${l.map(card).join('')}</div><button class="ar r" data-act="scroll" data-d="1" aria-label="Scroll right">›</button></div>`;
+const chips=()=>`<div class="chips"><button class="chip ${fsrc?'':'on'}" data-act="fs" data-s="">All sources</button>${st.sources.filter(s=>(s.items||[]).length).map(s=>`<button class="chip ${fsrc===s.name?'on':''}" data-act="fs" data-s="${esc(s.name)}">${esc(s.name)}</button>`).join('')}</div>`;
+const bmBtn=(k,big)=>`<button class="btn ${wl(k)?'on pri':''}" data-act="wl" data-k="${esc(k)}">${BM} ${wl(k)?'In watchlist':'Add to watchlist'}</button>`;
+
+function recs(e,L){
+  const sc=x=>x.tags.filter(t=>e.tags.includes(t)).length*10+x.score;
+  let r=L.filter(x=>x.k!==e.k&&x.tags.some(t=>e.tags.includes(t))).sort((a,b)=>sc(b)-sc(a)).slice(0,14);
+  if(r.length<8){const ids=new Set(r.map(x=>x.k).concat(e.k));r=r.concat(L.filter(x=>!ids.has(x.k)&&x.from.some(f=>e.from.some(g=>g.src===f.src))).slice(0,14-r.length))}
+  return r;
+}
+function tview(e,L){
+  const sn=st.seen[e.k]||{eps:{},last:null},w=st.watch[e.k],epm=epsOf(e);
+  const have=[...epm.keys()].sort((a,b)=>num(a)-num(b));
+  const top=Math.max(0,...have.map(num)),n=Math.min(300,Math.max(e.total||0,top));
+  const nums=new Set(have);for(let i=1;i<=n;i++)nums.add(String(i));
+  const list=[...nums].sort((a,b)=>num(a)-num(b));
+  const nxt=!have.length?'':!sn.last?have[0]:(have.find(x=>num(x)>num(sn.last.ep))||String(sn.last.ep));
+  const sb=[...new Set((e.from||[]).flatMap(f=>f.sub||[]))],noep=(e.from||[]).filter(f=>!f.ep&&f.link);
+  const r=recs(e,L);
+  return`<div class="page"><button class="btn sm" data-act="back" style="margin-bottom:18px">‹ Back</button>
+<div class="sy">${e.image?`<img src="${safe(e.image)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}
+<div><h1>${esc(e.title)}</h1>
+<div class="meta">${e.score?`<span class="tag hi">★ ${e.score.toFixed(1)}</span>`:''}${e.total?`<span class="tag">${e.total} episodes</span>`:''}${sb.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}${(e.tags||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>
+<p class="syn">${esc(e.desc||'No synopsis from your sources yet.')}</p>
+<div class="row">${nxt?`<button class="btn pri" data-act="ep" data-ep="${esc(nxt)}">▶ ${sn.last?'Continue':'Play'} · Episode ${esc(nxt)}</button>`:''}${bmBtn(e.k)}</div>
+${w?`<div class="chips" style="margin:14px 0 0">${['Plan to watch','Watching','Completed','Dropped'].map(t=>`<button class="chip ${w.tag===t?'on':''}" data-act="tag" data-k="${esc(e.k)}" data-t="${t}">${t}</button>`).join('')}</div>`:''}
+<p class="note" style="margin-top:12px">${sn.last?`Last watched · Episode ${esc(sn.last.ep)} · ${ago(sn.last.at)} <button class="chip" data-act="clrp" data-k="${esc(e.k)}">Clear progress</button>`:'Nothing watched yet.'}</p></div></div>
+${list.length?`<h3 style="margin-bottom:14px">Episodes</h3><div class="eps">${list.map(x=>{const has=epm.has(x),seen=sn.eps[x],f=has?epm.get(x):[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');
+return`<button class="ep ${seen?'seen':''} ${has?'':'off'}" ${has?`data-act="ep" data-ep="${esc(x)}"`:'disabled'} title="${esc(has?f.map(y=>y.src).join(', '):'No link yet')}">${esc(x)}<small>${esc(lb||(has?'':'—'))}</small></button>`}).join('')}</div>`:''}
+${noep.length?`<h3 style="margin-bottom:10px">Sources</h3><ul class="fl">${noep.map(f=>`<li><div><b>${esc(f.src)}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(f.link)}" data-k="${esc(e.k)}">Play</button><a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Open</a></li>`).join('')}</ul>`:''}
+${r.length?rail('You might also like','library',r):''}</div>`;
+}
+
+const AL=(sort,x='')=>({query:`query{Page(page:__PAGE__,perPage:50){media(type:ANIME,${x}sort:${sort}){title{romaji english}coverImage{large}siteUrl description(asHtml:false) genres averageScore episodes}}}`});
+const PRESETS=[
+{name:'AniList · Trending',url:'https://graphql.anilist.co',body:AL('TRENDING_DESC'),pages:4},
+{name:'AniList · Airing now',url:'https://graphql.anilist.co',body:AL('POPULARITY_DESC','status:RELEASING,'),pages:3},
+{name:'AniList · All-time popular',url:'https://graphql.anilist.co',body:AL('POPULARITY_DESC'),pages:6},
+{name:'AniList · Top rated',url:'https://graphql.anilist.co',body:AL('SCORE_DESC'),pages:4},
+{name:'Jikan · Top anime',url:'https://api.jikan.moe/v4/top/anime?page=__PAGE__',pages:4,gap:1000},
+{name:'Jikan · Airing now',url:'https://api.jikan.moe/v4/seasons/now?page=__PAGE__',pages:3,gap:1000},
+{name:'Kitsu · Most popular',url:'https://kitsu.io/api/edge/anime?sort=-userCount&page[limit]=20&page[offset]=__OFFSET__',pages:5,size:20},
+{name:'Kitsu · Airing now',url:'https://kitsu.io/api/edge/anime?filter[status]=current&sort=-userCount&page[limit]=20&page[offset]=__OFFSET__',pages:3,size:20},
+{name:'AnimeSchedule · Sub',url:'https://animeschedule.net/subrss.xml'},
+{name:'AnimeSchedule · Dub',url:'https://animeschedule.net/dubrss.xml'},
+{name:'AnimeSchedule · Raw',url:'https://animeschedule.net/jpnrss.xml'},
+{name:'Internet Archive · Animation',url:'https://archive.org/advancedsearch.php?q=collection%3Aanimationandcartoons&fl%5B%5D=identifier&fl%5B%5D=title&sort%5B%5D=downloads+desc&rows=100&page=__PAGE__&output=json',pages:3}];
 function srcView(){
-  return`<div class="panel"><h3>Display</h3><p class="note">Auto picks the layout for your device. Switch it to preview Windows, mobile or TV. Apps built around this page can set it with ?device=win, ?device=mobile or ?device=tv.</p>
+  const bad=st.sources.filter(s=>s.status==='error').length;
+  return`<div class="panel"><h3>Display</h3><p class="note">Auto picks the layout for your device. Apps built around this page can set it with ?device=win, ?device=mobile or ?device=tv.</p>
 <div class="chips" style="margin:0">${[['auto','Auto'],['win','Windows'],['mobile','Mobile'],['tv','TV']].map(([v,l])=>`<button class="chip ${(st.device||'auto')===v?'on':''}" data-act="dev" data-d="${v}">${l}${v==='auto'?' ('+DEV+')':''}</button>`).join('')}</div></div>
+<div class="panel"><h3>Quick add</h3><p class="note">Open anime catalogues. Each one loads several pages, so you get hundreds of titles.</p><div class="row">${PRESETS.map((p,i)=>`<button class="btn" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div>
+<form id="dm" class="row" style="margin-top:14px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form></div>
 <div class="panel"><h3>Add a source</h3>
 <form id="add"><input name="name" placeholder="Name (optional)" aria-label="Source name">
 <input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address">
 <textarea name="raw" rows="3" placeholder="…or paste JSON / RSS text here" aria-label="Pasted data"></textarea>
-<div class="row"><button class="btn pri" type="submit">Add source</button>
-<label class="btn">Import file<input id="file" type="file" accept=".json,.xml,.rss,.txt" hidden></label>
-<button class="btn" type="button" data-act="preset" data-n="Donghua Zone" data-u="https://www.donghuazone.com/">Donghua Zone</button>
-<button class="btn" type="button" data-act="preset" data-n="MeWatch Anime" data-u="">MeWatch Anime</button>
-<button class="btn" type="button" data-act="export">Export sources</button></div></form></div>
-<div class="panel"><h3>Quick add</h3><p class="note">Open anime databases and trackers. Tap to add.</p><div class="row">${PRESETS.map((p,i)=>`<button class="btn" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div></div>
-<div class="panel"><h3>Video servers</h3><p class="note">Add a Dailymotion channel as a source, and play Dailymotion, Rumble or direct video links in the Player. Only add channels and links you have the right to watch.</p><form id="dm" class="row"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form></div>
+<div class="row"><button class="btn pri" type="submit">Add source</button><label class="btn">Import file<input id="file" type="file" accept=".json,.xml,.rss,.txt" hidden></label><button class="btn" type="button" data-act="export">Export sources</button></div></form></div>
 <div class="panel"><h3>Your sources (${st.sources.length})</h3>
+${bad?`<div class="row" style="margin-bottom:10px"><button class="btn sm" data-act="dropbad">Remove ${bad} failed source${bad>1?'s':''}</button></div>`:''}
 ${st.sources.map(s=>`<div class="src"><div><b>${esc(s.name)}</b><small>${esc(s.url||'Pasted or imported data')}</small>
 <small class="${s.status==='error'||s.error?'err':''}">${s.status==='loading'?'Loading…':s.error||`${(s.items||[]).length} items`}</small></div>
 ${s.url?`<button class="btn sm" data-act="reload" data-id="${s.id}">Reload</button>`:''}
 <button class="btn sm" data-act="del" data-id="${s.id}">Remove</button></div>`).join('')||'<p class="empty">No sources yet.</p>'}</div>
-<div class="panel"><h3>Capture a site that blocks apps (MeWatch and similar)</h3>
-<p class="note">Some sites draw their lists with scripts, so no app can read them directly. Capture the list from your own browser instead: 1) open the page (for MeWatch, mewatch.sg/series/anime) and scroll down until everything has loaded; 2) press F12, open Console, paste the snippet and press Enter (it scrolls the page for you, so wait until it reports a count) (if asked, type “allow pasting” first); 3) pick “MeWatch Anime” above, paste into the data box and add (if it downloaded a file instead, use Import file). I couldn’t open that page myself, so check the result and tell me if titles are missing. Re-run the capture whenever you want an update.</p>
-<textarea rows="4" readonly aria-label="Capture snippet">${esc(SNIP)}</textarea>
-<div class="row" style="margin-top:10px"><button class="btn" data-act="copysnip">Copy snippet</button></div></div>
-<div class="panel"><h3>CORS proxy (optional)</h3><p class="note">If a site blocks direct requests, enter a proxy prefix that takes the encoded address on the end.</p>
-<input id="proxy" value="${esc(st.proxy)}" placeholder="https://your-proxy.example/?url=" aria-label="Proxy prefix"></div>`;
+<div class="panel"><h3>Watchlist backup</h3><p class="note">Export your watchlist and progress, or import one. Imports accept this app’s file, a JSON list of titles, or a text file with one title per line.</p>
+<div class="row"><button class="btn" data-act="expwl">Export watchlist</button><label class="btn">Import watchlist<input id="wlfile" type="file" accept=".json,.txt,.csv" hidden></label></div></div>
+<div class="panel"><h3>Network</h3><p class="note">Some sites block direct requests from a web page. With auto proxy on, a blocked source is retried in the background through public proxies, and the one that works is remembered. Those proxies can see the addresses you request, so turn it off if you’d rather not use them.</p>
+<div class="chips" style="margin:0 0 12px"><button class="chip ${st.auto!==false?'on':''}" data-act="auto">Auto proxy: ${st.auto!==false?'on':'off'}</button></div>
+<input id="proxy" value="${esc(st.proxy)}" placeholder="Optional proxy of your own: https://your-proxy.example/?url=" aria-label="Proxy prefix"></div>`;
 }
 
-function render(){
+function draw(){
   LIB=build();const L=LIB.list;
   document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   const needle=norm(q);
   const flt=a=>{let r=a;if(fsrc)r=r.filter(e=>e.from.some(f=>f.src===fsrc));if(needle)r=r.filter(e=>norm(e.title).includes(needle));return r};
   const latest=[...L].sort((a,b)=>(b.date-a.date)||(a.ord-b.ord));
   const W=Object.values(st.watch).reverse().map(x=>LIB.map.get(x.k)||x),H=st.hist.map(x=>LIB.map.get(x.k)||x);
-  $('#side').textContent=`${st.sources.length} sources · ${L.length} titles`;
-  let h='',T;
-  if(view==='home'){
+  let h='',T=['',''];
+  if(view==='title'){const e=entryFor(CUR);h=e?tview(e,L):'<div class="page"><p class="empty">Title not found.</p></div>';T=['Title','']}
+  else if(view==='home'){
     T=['Home',''];
     const hero=latest.find(e=>e.image)||latest[0];
-    if(needle)h=`<div class="page"><h3 style="margin-bottom:14px">Results</h3>${grid(flt(L),'No titles match your search.')}</div>`;
+    if(needle)h=`<div class="page"><h3 style="margin-bottom:14px">Results</h3>${grid(flt(L).slice(0,LIM),'No titles match your search.')}${more(flt(L))}</div>`;
     else{
       h=hero?`<div class="hero" style="--hb:url('${safe(hero.image).replace(/'/g,'%27')}')">${hero.image?`<img src="${safe(hero.image)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<div><h2>${esc(hero.title)}</h2>
 <p class="note">${hero.ep?`Episode ${esc(hero.ep)} · `:''}On ${new Set(hero.from.map(f=>f.src)).size} source(s)</p>
-<div class="row"><button class="btn pri" data-act="playbest" data-k="${esc(hero.k)}">▶ Play</button><button class="btn" data-open="${esc(hero.k)}">Details</button><button class="btn" data-act="wl" data-k="${esc(hero.k)}">${wl(hero.k)?'In watchlist':'+ Watchlist'}</button></div></div></div>`
+<div class="row"><button class="btn pri" data-act="playbest" data-k="${esc(hero.k)}">▶ Play</button><button class="btn" data-open="${esc(hero.k)}">Synopsis</button>${bmBtn(hero.k)}</div></div></div>`
       :`<div class="hero"><div><h2>Add your first source</h2><p class="note">Add a site or feed and Ani-Me Log lists what it has.</p><button class="btn pri" data-act="go" data-v="sources">Open Settings</button></div></div>`;
-      h+=`<div class="rows">`+rail('Latest','latest',latest.slice(0,20));
-      if(W.length)h+=rail('Watchlist','watchlist',W.slice(0,20));
-      if(H.length)h+=rail('History','history',H.slice(0,20));
-      st.sources.slice(0,6).forEach(x=>{const l=L.filter(e=>e.from.some(f=>f.src===x.name)).slice(0,20);if(l.length)h+=rail('From '+x.name,'library',l,x.name)});
+      h+=`<div class="rows">`+(latest.length?rail('Latest','latest',latest.slice(0,24)):'');
+      if(W.length)h+=rail('Watchlist','watchlist',W.slice(0,24));
+      if(H.length)h+=rail('History','history',H.slice(0,24));
+      st.sources.slice(0,8).forEach(x=>{const l=L.filter(e=>e.from.some(f=>f.src===x.name)).slice(0,24);if(l.length)h+=rail('From '+x.name,'library',l,x.name)});
       h+=`</div>`;
     }
-  }else if(view==='library'){const f=flt(L);T=['Library',`${f.length} titles`];h=chips()+grid(f,'No titles yet. Add a source under Sources.')}
-  else if(view==='latest'){const f=flt(latest).slice(0,80);T=['Latest','Newest first'];h=chips()+grid(f,'No titles yet. Add a source under Sources.')}
-  else if(view==='watchlist'){const f=flt(W);T=['Watchlist',`${W.length} saved`];h=grid(f,'Tap the heart on any title to save it here.')}
+  }else if(view==='library'){const f=flt(L);T=['Library',`${f.length} titles`];h=chips()+grid(f.slice(0,LIM),'No titles yet. Add a source under Settings.')+more(f)}
+  else if(view==='latest'){const f=flt(latest);T=['Latest','Newest first'];h=chips()+grid(f.slice(0,LIM),'No titles yet. Add a source under Settings.')+more(f)}
+  else if(view==='watchlist'){const f=flt(W);T=['Watchlist',`${W.length} saved`];h=grid(f,'Tap the bookmark on any title to save it here.')}
   else if(view==='history'){const f=flt(H);T=['History','Recently opened'];h=(H.length?`<div class="row" style="margin-bottom:16px"><button class="btn sm" data-act="clrh">Clear history</button></div>`:'')+grid(f,'Titles you open will appear here.')}
-  else if(view==='player'){T=['Player','Watch inside the app'];h=playerView()}
-  else{T=['Settings','Sources, servers and capture tools'];h=srcView()}
-  document.body.classList.toggle('home',view==='home');
+  else{T=['Settings','Sources, network and backup'];h=srcView()}
+  if(view!=='home'&&view!=='title')h=`<div class="page">${h}</div>`;
+  document.body.classList.toggle('nohead',view==='home'||view==='title');
   $('#ttl').textContent=T[0];$('#sub').textContent=T[1];
-  if(view!=='home')h=`<div class="page">${h}</div>`;
-  const pk=view==='player'&&PLAY?PLAY.url+(PLAY.e?PLAY.e.src:''):'';
-  if(pk&&$('#view').dataset.p===pk&&$('.vid video,.vid iframe'))return;
-  if(document.activeElement?.id!=='proxy'){$('#view').innerHTML=h;$('#view').dataset.p=pk;attachHls();if(DEV==='tv'&&document.activeElement===document.body){const f=$('#view .btn.pri,#view .open');if(f)f.focus({preventScroll:true})}}
+  if(document.activeElement?.id==='proxy')return;
+  $('#view').innerHTML=h;
+  if(DEV==='tv'&&document.activeElement===document.body){const f=$('#view .btn.pri,#view .open');if(f)f.focus({preventScroll:true})}
 }
-
-function modal(e){
-  const from=[...e.from].sort((a,b)=>(+b.ep||0)-(+a.ep||0));
-  DLG.innerHTML=`<div class="mh">${e.image?`<img src="${safe(e.image)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<div><h2>${esc(e.title)}</h2>${e.ep?`<p class="note">Latest: episode ${esc(e.ep)}</p>`:''}
-<div class="row"><button class="btn pri" data-act="wl" data-k="${esc(e.k)}">${wl(e.k)?'Remove from watchlist':'+ Watchlist'}</button><button class="btn" data-act="close">Close</button></div></div></div>
-<h3>On ${new Set(from.map(f=>f.src)).size} source(s)</h3>
-<ul class="fl">${from.map(f=>`<li><div><b>${esc(f.src)}</b><small>${esc(f.raw)}</small></div>${embedFor(f.link||'')?`<button class="btn sm pri" data-act="play" data-u="${safe(f.link)}" data-k="${esc(e.k)}">${embedFor(f.link).type==='page'?'Try in app':'Play here'}</button>`:''}${safe(f.link)?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Open</a>`:''}</li>`).join('')}</ul>`;
-  if(!DLG.open)DLG.showModal();
+let rq=0;function render(){cancelAnimationFrame(rq);rq=requestAnimationFrame(draw)}
+function openTitle(k){
+  const e=entryFor(k);if(!e)return;
+  if(view!=='title')prev=view;CUR=k;view='title';
+  st.hist=[snap(e),...st.hist.filter(h=>h.k!==e.k)].slice(0,100);save();draw();scrollTo(0,0);
+}
+const download=(name,txt)=>{const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));l.download=name;l.click()};
+function importWL(txt){
+  let n=0;
+  const add=(t,tag,img)=>{t=String(t||'').trim();if(!t)return;const k=norm(t);if(!k||st.watch[k])return;st.watch[k]={k,title:t,image:img||'',ep:'',from:[],tag:tag||'Plan to watch'};n++};
+  try{const d=JSON.parse(txt),a=Array.isArray(d)?d:(d.watch||d.items||d.list||[]);
+    a.forEach(x=>typeof x==='string'?add(x):add(x.title||x.name,x.tag,x.image));
+    if(d&&d.seen&&typeof d.seen==='object')Object.keys(d.seen).forEach(k=>{if(!st.seen[k])st.seen[k]=d.seen[k]});
+  }catch(e){txt.split(/\r?\n/).forEach(l=>add(l.replace(/^[-*•\s]+/,'')))}
+  save();draw();toast(n+' added to your watchlist.');
 }
 
 /* events */
 document.addEventListener('click',async ev=>{
-  if(ev.target===DLG){DLG.close();return}
-  const n=ev.target.closest('.nav');if(n){view=n.dataset.v;render();return}
+  const n=ev.target.closest('.nav');if(n){view=n.dataset.v;LIM=120;draw();scrollTo(0,0);return}
   const o=ev.target.closest('[data-open]');
-  if(o&&!ev.target.closest('.heart')){
-    const e=entryFor(o.dataset.open);
-    if(e){st.hist=[snap(e),...st.hist.filter(h=>h.k!==e.k)].slice(0,100);save();modal(e)}
-    return;
-  }
+  if(o&&!ev.target.closest('.bmc')){openTitle(o.dataset.open);return}
   const b=ev.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,s=st.sources.find(x=>x.id===b.dataset.id);
-  if(a==='close')DLG.close();
-  if(a==='go'){view=b.dataset.v;if(b.dataset.s!==undefined)fsrc=b.dataset.s;render()}
-  if(a==='dev'){st.device=b.dataset.d;save();applyDevice();render()}
+  if(a==='go'){view=b.dataset.v;LIM=120;if(b.dataset.s!==undefined)fsrc=b.dataset.s;draw();scrollTo(0,0)}
+  if(a==='back'){view=prev||'home';draw()}
+  if(a==='more'){LIM+=120;draw()}
+  if(a==='fs'){fsrc=b.dataset.s;LIM=120;draw()}
   if(a==='scroll')b.parentElement.querySelector('.rail').scrollBy({left:+b.dataset.d*620,behavior:'smooth'});
-  if(a==='playbest'){const en=entryFor(b.dataset.k);if(!en)return;const fs=[...en.from].sort((x,y)=>(+y.ep||0)-(+x.ep||0));
-    const f=fs.find(f=>f.link&&embedFor(f.link)&&embedFor(f.link).type!=='page')||fs.find(f=>f.link);if(f)play(f.link,en.k,en.title);else modal(en)}
-  if(a==='fs'){fsrc=b.dataset.s;render()}
-  if(a==='wl'){const k=b.dataset.k,e=entryFor(k);if(wl(k))delete st.watch[k];else if(e)st.watch[k]=snap(e);save();if(DLG.open&&e)modal(e);render()}
-  if(a==='clrh'){st.hist=[];save();render()}
-  if(a==='refresh'){if(!st.sources.length)return toast('Add a source first.');await refreshAll();toast('Sources refreshed.')}
+  if(a==='wl'){const k=b.dataset.k,e=entryFor(k);if(wl(k))delete st.watch[k];else if(e)st.watch[k]={...snap(e),tag:'Plan to watch'};save();draw()}
+  if(a==='tag'){if(st.watch[b.dataset.k]){st.watch[b.dataset.k].tag=b.dataset.t;save();draw()}}
+  if(a==='ep'){const e=entryFor(CUR);if(e)playEp(e,b.dataset.ep)}
+  if(a==='clrp'){delete st.seen[b.dataset.k];save();draw()}
+  if(a==='playbest'){const e=entryFor(b.dataset.k);if(!e)return;const h=[...epsOf(e).keys()].sort((x,y)=>num(y)-num(x))[0];if(h)playEp(e,h);else openTitle(e.k)}
+  if(a==='pl'){const e=entryFor(b.dataset.k);play(b.dataset.u,b.dataset.k,e?e.title:'',''); }
+  if(a==='srv')play(b.dataset.u,PLAY.k,PLAY.title,PLAY.ep);
+  if(a==='pclose')PD.close();
+  if(a==='clrh'){st.hist=[];save();draw()}
+  if(a==='refresh'){if(!st.sources.length)return toast('Add a source first.');await runAll(st.sources.filter(s=>s.url));toast('Sources refreshed.')}
   if(a==='reload'&&s)load(s);
-  if(a==='del'&&s){st.sources=st.sources.filter(x=>x!==s);if(fsrc===s.name)fsrc='';save();render()}
-  if(a==='preset'){const f=$('#add');f.name.value=b.dataset.n;f.url.value=b.dataset.u;if(!b.dataset.u){f.raw.focus();toast('Paste your captured list into the data box.')}}
+  if(a==='del'&&s){st.sources=st.sources.filter(x=>x!==s);if(fsrc===s.name)fsrc='';save();draw()}
+  if(a==='dropbad'){st.sources=st.sources.filter(x=>x.status!=='error');save();draw()}
+  if(a==='dev'){st.device=b.dataset.d;save();applyDevice();draw()}
+  if(a==='auto'){st.auto=st.auto===false;save();draw()}
   if(a==='quick'){const p=PRESETS[+b.dataset.i];if(st.sources.some(x=>x.name===p.name))return toast('Already added.');
-    const ns={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:p.name,url:p.url,items:[]};if(p.body)ns.body=p.body;st.sources.push(ns);load(ns)}
-  if(a==='play'||a==='srv'){const k=b.dataset.k||(PLAY&&PLAY.k)||'',en=entryFor(k);play(b.dataset.u,k,en?en.title:(PLAY&&PLAY.title))}
-  if(a==='copysnip'){try{await navigator.clipboard.writeText(SNIP);toast('Snippet copied.')}catch(e){toast('Select the snippet and copy it by hand.')}}
-  if(a==='export'){const blob=new Blob([JSON.stringify(st.sources.filter(s=>s.url).map(({name,url,body})=>body?{name,url,body}:{name,url}),null,2)],{type:'application/json'});
-    const l=document.createElement('a');l.href=URL.createObjectURL(blob);l.download='sources.json';l.click()}
+    const ns={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),items:[],...p};st.sources.push(ns);load(ns)}
+  if(a==='expwl')download('ani-me-watchlist.json',JSON.stringify({app:'ani-me-log',version:1,watch:Object.values(st.watch).map(w=>({title:w.title,image:w.image||'',tag:w.tag||'Plan to watch'})),seen:st.seen},null,2));
+  if(a==='export')download('sources.json',JSON.stringify(st.sources.filter(x=>x.url).map(({name,url,body,pages,size,gap})=>({name,url,body,pages,size,gap})),null,2));
 });
 document.addEventListener('submit',async ev=>{
-  if(ev.target.id==='pl'){ev.preventDefault();const u=ev.target.u.value.trim();if(u)play(u,'','Pasted link');return}
   if(ev.target.id==='dm'){ev.preventDefault();
     const c=ev.target.c.value.trim().replace(/^.*dailymotion\.com\/(?!video)/i,'').replace(/[\/?#].*$/,'');
     if(!c)return;const nm='Dailymotion · '+c;if(st.sources.some(x=>x.name===nm))return toast('Already added.');
@@ -473,21 +583,22 @@ document.addEventListener('submit',async ev=>{
   f.reset();await load(s);
 });
 document.addEventListener('change',ev=>{
-  if(ev.target.id==='file'){const fl=ev.target.files[0];if(!fl)return;const r=new FileReader();
-    r.onload=()=>{const s={id:Date.now().toString(36),name:fl.name,url:'',raw:r.result,items:[]};st.sources.push(s);load(s)};r.readAsText(fl)}
+  const fl=ev.target.files&&ev.target.files[0];if(!fl)return;
+  const r=new FileReader();
+  if(ev.target.id==='file'){r.onload=()=>{const s={id:Date.now().toString(36),name:fl.name,url:'',raw:r.result,items:[]};st.sources.push(s);load(s)};r.readAsText(fl)}
+  if(ev.target.id==='wlfile'){r.onload=()=>importWL(r.result);r.readAsText(fl)}
 });
 document.addEventListener('input',ev=>{
-  if(ev.target.id==='q'){q=ev.target.value;render()}
+  if(ev.target.id==='q'){q=ev.target.value;LIM=120;render()}
   if(ev.target.id==='proxy'){st.proxy=ev.target.value.trim();save()}
 });
-DLG.addEventListener('close',render);
+PD.addEventListener('click',ev=>{if(ev.target===PD)PD.close()});
+PD.addEventListener('close',()=>{PD.innerHTML='';PLAY=null;draw()});
 
-/* device modes: Windows, mobile and TV */
-let DEV='win';
+/* device modes */
 {const qd=new URLSearchParams(location.search).get('device');if(['win','mobile','tv'].includes(qd))st.device=qd}
 function detectDevice(){
-  const ua=navigator.userAgent;
-  if(/Tizen|Web0S|webOS|SmartTV|SMART-TV|Android TV|AndroidTV|AFT|BRAVIA|CrKey|Roku|HbbTV/i.test(ua))return'tv';
+  if(/Tizen|Web0S|webOS|SmartTV|SMART-TV|Android TV|AndroidTV|AFT|BRAVIA|CrKey|Roku|HbbTV/i.test(navigator.userAgent))return'tv';
   if(innerWidth<700||(matchMedia('(pointer:coarse)').matches&&innerWidth<900))return'mobile';
   return'win';
 }
@@ -497,17 +608,16 @@ function applyDevice(){
 }
 addEventListener('resize',()=>{if(!st.device||st.device==='auto')applyDevice()});
 applyDevice();
-/* TV remote: arrow keys move focus to the nearest control, Enter selects, Back goes home */
 document.addEventListener('keydown',ev=>{
   if(DEV!=='tv')return;
   const a=document.activeElement,typing=a&&/INPUT|TEXTAREA/.test(a.tagName);
   const k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[ev.key];
   if(!k){
-    if(ev.key==='Escape'||(ev.key==='Backspace'&&!typing)){ev.preventDefault();if(DLG.open)DLG.close();else if(view!=='home'){view='home';render()}}
+    if(ev.key==='Escape'||(ev.key==='Backspace'&&!typing)){ev.preventDefault();if(PD.open)PD.close();else if(view==='title'){view=prev||'home';draw()}else if(view!=='home'){view='home';draw()}}
     return;
   }
   if(typing&&k[0])return;
-  const els=[...(DLG.open?DLG:document).querySelectorAll('button:not([disabled]),a[href],input:not([readonly]),textarea')].filter(e=>e.offsetParent!==null);
+  const els=[...(PD.open?PD:document).querySelectorAll('button:not([disabled]),a[href],input:not([readonly]),textarea')].filter(e=>e.offsetParent!==null);
   if(!a||!els.includes(a)){if(els[0])els[0].focus();ev.preventDefault();return}
   const r0=a.getBoundingClientRect(),cx=r0.left+r0.width/2,cy=r0.top+r0.height/2;
   let best=null,bs=1e9;
@@ -525,19 +635,24 @@ document.addEventListener('keydown',ev=>{
     Object.assign(p.style,{left:Math.random()*100+'vw',width:w+'px',height:w*1.3+'px',background:`linear-gradient(135deg,${c[i%5]},#5a3a32)`,animationDuration:(16+Math.random()*16)+'s',animationDelay:(-Math.random()*30)+'s'});
     document.body.appendChild(p)}})();
 
-/* start: also pull sources.json from the repo, if present */
+/* start: pull the repo's sources.json, retire old broken entries, load what's empty */
+const LEGACY=new Set(['https://api.jikan.moe/v4/top/anime','https://api.jikan.moe/v4/seasons/now','https://kitsu.io/api/edge/anime?sort=-userCount&page[limit]=20','https://kitsu.io/api/edge/anime?filter[status]=current&sort=-userCount&page[limit]=20','https://graphql.anilist.co']);
 (async()=>{
+  st.sources=st.sources.filter(s=>!(LEGACY.has(s.url)&&!s.pages));
+  st.sources.forEach(s=>{if(s.status==='loading')s.status=''});
   try{
     const r=await fetch('sources.json',{cache:'no-store'});
     if(r.ok){const list=await r.json();
       (Array.isArray(list)?list:[]).forEach(x=>{
-        if(x&&/^https?:\/\//i.test(x.url||'')&&!st.sources.some(s=>s.url===x.url))
-          st.sources.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:x.name||new URL(x.url).hostname,url:x.url,body:x.body,items:[]});
-      });save();
+        if(!x||!/^https?:\/\//i.test(x.url||''))return;
+        const have=st.sources.find(s=>s.name===x.name);
+        if(have)Object.assign(have,{url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap});
+        else st.sources.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:x.name||new URL(x.url).hostname,url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap,items:[]});
+      });
     }
   }catch(e){}
-  render();
-  st.sources.filter(s=>s.url&&!(s.items||[]).length).forEach(load);
+  save();draw();
+  runAll(st.sources.filter(s=>s.url&&!(s.items||[]).length));
 })();
 </script>
 </body>
