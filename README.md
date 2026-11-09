@@ -26,6 +26,13 @@ Titles that appear in more than one source are merged automatically, so nothing 
 - Not included: AniDB, Simkl and Kurozora need an account or API key, and Anime-Planet has no public API. Add them yourself later if you get a key.
 - The app is meant for catalogues and feeds you have the right to use. It doesn’t include streaming, torrent or download sites.
 
+## Player and servers
+
+- **Player** plays Dailymotion links, Rumble embed links and direct video files (.mp4, .webm) inside the app. Choose **Play here** on a title, or paste a link.
+- **Settings → Video servers** adds a Dailymotion channel as a source (paste a channel name or link). Its videos then appear in your Library next to your other sources.
+- Rumble has no public feed. Use the capture snippet on a Rumble channel page, or paste single video links into the Player. If Rumble won’t let the app look a link up, use the embed link from Rumble’s Share menu.
+- Only add channels and links you have the right to watch.
+
 ## Where to find sources
 
 A source is any URL that returns a list of titles as JSON or RSS/Atom.
