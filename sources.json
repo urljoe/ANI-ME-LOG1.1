@@ -1,0 +1,36 @@
+[
+  {
+    "name": "AniList · Trending",
+    "url": "https://graphql.anilist.co",
+    "body": {
+      "query": "query{Page(perPage:50){media(type:ANIME,sort:TRENDING_DESC){title{romaji english}coverImage{large}siteUrl}}}"
+    }
+  },
+  {
+    "name": "AniList · Airing now",
+    "url": "https://graphql.anilist.co",
+    "body": {
+      "query": "query{Page(perPage:50){media(type:ANIME,status:RELEASING,sort:POPULARITY_DESC){title{romaji english}coverImage{large}siteUrl}}}"
+    }
+  },
+  {
+    "name": "Jikan (MyAnimeList) · Top",
+    "url": "https://api.jikan.moe/v4/top/anime"
+  },
+  {
+    "name": "Jikan (MyAnimeList) · Airing now",
+    "url": "https://api.jikan.moe/v4/seasons/now"
+  },
+  {
+    "name": "Kitsu · Most popular",
+    "url": "https://kitsu.io/api/edge/anime?sort=-userCount&page[limit]=20"
+  },
+  {
+    "name": "Kitsu · Airing now",
+    "url": "https://kitsu.io/api/edge/anime?filter[status]=current&sort=-userCount&page[limit]=20"
+  },
+  {
+    "name": "Donghua Zone",
+    "url": "https://www.donghuazone.com/"
+  }
+]
