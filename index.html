@@ -244,6 +244,7 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 </nav>
 <footer>thewiltedpetals.blooms</footer>
 <div id="toast" role="status"></div>
+<script src="./source-engine.js"></script>
 <script>
 const K='animelog.v1',$=s=>document.querySelector(s);
 let st={sources:[],proxy:'',auto:true,watch:{},hist:[],seen:{},device:'auto'},view='home',prev='home',CUR='',q='',fsrc='',LIM=120,LIB={map:new Map(),list:[]},PLAY=null,DEV='win',HLSP=null,WSORT='asc',WLIST=false;
@@ -392,8 +393,18 @@ async function fetchSite(s){
 }
 const fill=(t,p,s)=>t.replace(/__PAGE__/g,p).replace(/__OFFSET__/g,(p-1)*(s.size||20));
 async function fetchItems(s){
-  const t=new URL(fill(s.url,1,s));
-  if(!s.body&&t.pathname==='/'&&!t.search)return fetchSite(s);
+  if(!window.AniMeSourceEngine)throw new Error('Central source engine did not load.');
+  return window.AniMeSourceEngine.fetch(s,{
+    fetchFeed:async source=>{
+      const u=new URL(fill(source.url,1,source));
+      if(!source.body&&u.pathname==='/'&&!u.search)return fetchSite(source);
+      return fetchPaged(source);
+    },
+    fetchPaged,
+    fetchImported:async source=>parseText(source.raw||'')
+  });
+}
+async function fetchPaged(s){
   let all=[];
   for(let p=1;p<=(s.pages||1);p++){
     let it;
@@ -594,15 +605,7 @@ const PRESETS=[
 /* ---- preferences, playback choice, downloads, cloud catalog, settings ---- */
 st.prefs=Object.assign({watchMode:'auto',watchSub:'',watchDub:'',dlSub:'',dlDub:'',quality:'720p',notify:true,enabled:{}},st.prefs||{});
 
-const PROVIDERS=[
-  {id:'anikoto',name:'AniKoto'},
-  {id:'animepahe',name:'AnimePahe'},
-  {id:'reanime',name:'ReAnime'},
-  {id:'donghuazone',name:'DonghuaZone'},
-  {id:'donghuanation',name:'DonghuaNation'},
-  {id:'animekhor',name:'AnimeKhor'},
-  {id:'donghuastream',name:'DonghuaStream'}
-];
+const PROVIDERS=window.AniMeSourceEngine.providers;
 st.providers=Object.assign({},Object.fromEntries(PROVIDERS.map(p=>[p.id,''])),st.providers||{});
 
 let FIT='fit',DLC=[],DLP={};
@@ -706,7 +709,7 @@ function scheduleView(){
 }
 
 /* local catalog index ("cloud" panel) */
-function snapshot(){return{schema:'ani-me-catalog',version:2,exportedAt:new Date().toISOString(),sources:st.sources.map(s=>({name:s.name,url:s.url||'',status:s.status||'',items:(s.items||[]).length,updated:s.updated||null})),titles:LIB.list.map(e=>({title:e.title,aliases:e.aliases||[],tags:e.tags||[],total:e.total||0,score:e.score||0,episodes:Object.fromEntries([...epsOf(e)].map(([k,l])=>[k,l.map(f=>({source:f.src,link:f.link||'',video:f.video||''}))]))}))}}
+function snapshot(){return{schema:'ani-me-catalog',version:2,exportedAt:new Date().toISOString(),sources:st.sources.map(s=>({name:s.name,url:s.url||'',adapter:s.adapter||window.AniMeSourceEngine.infer(s),status:s.status||'',items:(s.items||[]).length,updated:s.updated||null})),titles:LIB.list.map(e=>({title:e.title,aliases:e.aliases||[],tags:e.tags||[],total:e.total||0,score:e.score||0,episodes:Object.fromEntries([...epsOf(e)].map(([k,l])=>[k,l.map(f=>({source:f.src,link:f.link||'',video:f.video||''}))]))}))}}
 function cloudView(){
   const L=LIB.list,links=L.reduce((a,e)=>a+(e.from||[]).length,0);
   const keys=new Set();L.forEach(e=>epsOf(e).forEach((_,k)=>keys.add(e.k+'|'+k)));
@@ -745,7 +748,7 @@ function srcView(){
 
   const providerCards=PROVIDERS.map(p=>{
     const url=st.providers[p.id]||'';
-    return `<div class="provider-card"><div><b>${esc(p.name)}</b><small>${url?'Provider address saved on this device':'Add the provider’s website address to enable it'}</small><input name="provider:${p.id}" type="url" inputmode="url" placeholder="https://provider.example" value="${esc(url)}" aria-label="${esc(p.name)} website address"></div><div class="provider-actions"><button class="btn sm pri" type="button" data-act="provider-open" data-provider="${p.id}" ${url?'':'disabled'}>Open in player</button><button class="btn sm" type="button" data-act="provider-tab" data-provider="${p.id}" ${url?'':'disabled'}>Open site</button></div></div>`;
+    return `<div class="provider-card"><div><b>${esc(p.name)}</b><small>Individual provider · Website shortcut · ${url?'Address saved on this device':'Add the provider’s website address'}</small><input name="provider:${p.id}" type="url" inputmode="url" placeholder="https://provider.example" value="${esc(url)}" aria-label="${esc(p.name)} website address"></div><div class="provider-actions"><button class="btn sm pri" type="button" data-act="provider-open" data-provider="${p.id}" ${url?'':'disabled'}>Open in player</button><button class="btn sm" type="button" data-act="provider-tab" data-provider="${p.id}" ${url?'':'disabled'}>Open site</button></div></div>`;
   }).join('');
 
   return`<form id="prefs" class="set">
@@ -770,7 +773,7 @@ function srcView(){
 <form id="dm" class="row" style="margin-top:6px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form>
 <form id="yt" class="row" style="margin-top:10px"><input name="n" style="flex:1;min-width:120px" placeholder="Channel name (optional)" aria-label="YouTube channel name"><input name="c" style="flex:2;min-width:200px" placeholder="YouTube channel ID (starts with UC) or feed link" aria-label="YouTube channel ID"><button class="btn" type="submit">Add YouTube</button></form></section>
 <section class="panel"><h3>Add a source</h3><form id="add" class="stack"><input name="name" placeholder="Name (optional)" aria-label="Source name"><input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address"><textarea name="raw" rows="3" placeholder="…or paste JSON / RSS text here" aria-label="Pasted data"></textarea><div class="row"><button class="btn pri" type="submit">Add source</button><label class="btn">Import file<input id="file" type="file" accept=".json,.xml,.rss,.txt" hidden></label><button class="btn" type="button" data-act="export">Export sources</button></div></form></section>
-<section class="panel"><h3>Streaming provider shortcuts</h3><p class="note">Add each provider’s website address. “Open in player” loads the site inside the boxed player; “Open site” opens a separate tab if the provider blocks embedding.</p><div class="providers">${providerCards}</div><div class="provider-note">These are website shortcuts, not automatic catalogue or stream extractors. A provider must permit embedding for its pages to play inside the app. No DRM, login, paywall, or access-control bypass is attempted.</div><div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="providers-save">Save provider addresses</button></div></section>
+<section class="panel"><h3>Streaming provider shortcuts</h3><p class="note">Each provider stays individually configurable. The central engine manages these as website shortcuts today; automatic catalogue or stream extraction is enabled only when a provider has a supported adapter.</p><div class="providers">${providerCards}</div><div class="provider-note">These are website shortcuts, not automatic catalogue or stream extractors. A provider must permit embedding for its pages to play inside the app. No DRM, login, paywall, or access-control bypass is attempted.</div><div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="providers-save">Save provider addresses</button></div></section>
 <section class="panel"><h3>Your sources (${st.sources.length})</h3>${bad?`<div class="row" style="margin-bottom:10px"><button class="btn sm" data-act="dropbad">Remove ${bad} failed source${bad>1?'s':''}</button></div>`:''}
 ${st.sources.map(s=>`<div class="src"><div><b>${esc(s.name)}</b><small>${esc(s.url||'Pasted or imported data')}</small><small class="${s.status==='error'||s.error?'err':''}">${s.status==='loading'?'Loading…':s.error||`${(s.items||[]).length} items`}</small></div>${s.url?`<button class="btn sm" data-act="reload" data-id="${s.id}">Reload</button>`:''}<button class="btn sm" data-act="del" data-id="${s.id}">Remove</button></div>`).join('')||'<p class="empty">No sources yet.</p>'}</section>
 <section class="panel"><h3>Watchlist backup</h3><p class="note">Export your watchlist and progress, or import one. Imports accept this app’s file, a JSON list of titles, or a text file with one title per line.</p><div class="row"><button class="btn" data-act="expwl">Export watchlist</button><label class="btn">Import watchlist<input id="wlfile" type="file" accept=".json,.txt,.csv" hidden></label></div></section>
@@ -904,7 +907,7 @@ document.addEventListener('click',async ev=>{
   if(a==='quick'){const p=PRESETS[+b.dataset.i];if(st.sources.some(x=>x.name===p.name))return toast('Already added.');
     const ns={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),items:[],...p};st.sources.push(ns);load(ns)}
   if(a==='expwl')download('ani-me-watchlist.json',JSON.stringify({app:'ani-me-log',version:1,watch:Object.values(st.watch).map(w=>({title:w.title,image:w.image||'',tag:w.tag||'Plan to watch'})),seen:st.seen},null,2));
-  if(a==='export')download('sources.json',JSON.stringify(st.sources.filter(x=>x.url).map(({name,url,body,pages,size,gap})=>({name,url,body,pages,size,gap})),null,2));
+  if(a==='export')download('sources.json',JSON.stringify(st.sources.filter(x=>x.url).map(({name,url,body,pages,size,gap,adapter})=>({name,url,body,pages,size,gap,adapter})),null,2));
 });
 document.addEventListener('submit',async ev=>{
   if(ev.target.id==='yt'){ev.preventDefault();
