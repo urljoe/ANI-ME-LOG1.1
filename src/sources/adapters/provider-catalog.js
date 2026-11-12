@@ -26,7 +26,7 @@
     const cleanTitle=clean(title);
     const url=validHttps(link);
     if(cleanTitle.length<2||!url)return null;
-    const img=validHttps(image,url);
+    const img=image?validHttps(image,url):'';
     return {title:cleanTitle,raw:cleanTitle,link:url,image:img,aliases:[],...(extra||{})};
   }
   function rowsFromHtml(html,base,providerId){
