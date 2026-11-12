@@ -57,26 +57,26 @@
     }
     return out;
   }
-  function fromAnimePahe(data){
+  function fromAnimePahe(data,base){
     const out=[],seen=new Set();
     (Array.isArray(data)?data:[]).forEach(post=>{
       const raw=clean(post?.title?.rendered||post?.title||'');
       const m=raw.match(/^(.*?)\s+Episode\s+(\d+(?:\.\d+)?)\s+English\s+Subbed$/i);
-      const link=validHttps(post?.link,'https://animepahe.ch/');
-      if(!m||!link||new URL(link).hostname!=='animepahe.ch')return;
+      const link=validHttps(post?.link,base);
+      if(!m||!link||new URL(link).hostname!==new URL(base).hostname)return;
       const title=clean(m[1]),ep=String(Number(m[2])),k=key(title)+'|'+ep;
       if(seen.has(k))return;seen.add(k);
       out.push(item(title,link,'',{ep,date:Date.parse(post?.date_gmt||'')||0,sub:['SUB']}));
     });
     return out;
   }
-  function fromJustAnime(data){
+  function fromJustAnime(data,base){
     const rootData=data&&typeof data==='object'?data:{};
     const lists=[rootData.trending,rootData.popular,rootData.airing,rootData.latestEpisode];
     const out=[],seen=new Set();
     lists.forEach(list=>(Array.isArray(list)?list:[]).forEach(x=>{
       const title=x?.title||x?.name,link=x?.url||x?.href||x?.link;
-      const r=item(title,validHttps(link,'https://justanime.to/'),x?.image||x?.poster||x?.coverImage);
+      const r=item(title,validHttps(link,base),x?.image||x?.poster||x?.coverImage);
       if(!r)return;const k=key(r.title);if(seen.has(k))return;seen.add(k);out.push(r);
     }));
     return out.slice(0,80);
@@ -91,14 +91,14 @@
         const p=PROVIDERS[source&&source.providerId];
         if(!p)throw new Error('Unknown catalog provider.');
         const base=validHttps(source.url,'https://'+p.host+'/');
-        if(!base||new URL(base).hostname!==p.host)throw new Error('Provider address must use its configured HTTPS host.');
+        if(!base)throw new Error('Enter a valid HTTPS provider address.');
         if(source.providerId==='animepahe'){
           const text=await fetchText(new URL(p.path,base).href);
-          return fromAnimePahe(JSON.parse(text));
+          return fromAnimePahe(JSON.parse(text),base);
         }
         if(source.providerId==='justanime'){
           const text=await fetchText('https://core.justanime.to/api/home');
-          return fromJustAnime(JSON.parse(text));
+          return fromJustAnime(JSON.parse(text),base);
         }
         const catalogUrl=new URL(p.path,base).href;
         const html=await fetchText(catalogUrl);
