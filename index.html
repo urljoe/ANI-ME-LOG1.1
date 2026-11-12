@@ -246,6 +246,7 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 <div id="toast" role="status"></div>
 <script src="./src/sources/engine.js"></script>
 <script src="./src/sources/adapters/animeschedule-rss.js"></script>
+<script src="./src/sources/adapters/provider-catalog.js"></script>
 <script>
 const SourceEngine=window.AniMeSourceEngine;
 const K='animelog.v1',$=s=>document.querySelector(s);
@@ -412,6 +413,7 @@ SourceEngine.registerAdapter({
   matches:source=>!source.providerId&&!source.adapterId,
   load:async source=>source.raw!=null?parseText(source.raw):await fetchItems(source)
 });
+SourceEngine.registerAdapter(window.createProviderCatalogAdapter({fetchText:grab}));
 async function load(s){
   s.status='loading';render();
   try{
@@ -563,7 +565,7 @@ ${w?`<div class="chips" style="margin:14px 0 0">${['Plan to watch','Watching','C
 <p class="note" style="margin-top:12px">${sn.last?`Last watched · Episode ${esc(sn.last.ep)} · ${ago(sn.last.at)} <button class="chip" data-act="clrp" data-k="${esc(e.k)}">Clear progress</button>`:'Nothing watched yet.'}</p></div></div>
 ${list.length?`<h3 style="margin-bottom:14px">Episodes</h3><div class="eps">${list.map(x=>{const has=epm.has(x),seen=sn.eps[x],f=has?epm.get(x):[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');
 return`<button class="ep ${seen?'seen':''} ${has?'':'via'}" ${has?`data-act="ep" data-ep="${esc(x)}"`:'disabled'} title="${esc(has?f.map(y=>y.src).join(', '):'Not available from your sources')}">${esc(x)}<small>${esc(lb||(has?'':'no link'))}</small></button>`}).join('')}</div>`:''}
-${sourceRecords.length?`<h3 style="margin-bottom:10px">Provider links and episodes</h3><p class="note">All matching provider records are kept here. Episode links stay grouped with their episode numbers.</p><ul class="fl">${sourceRecords.map(f=>{const u=f.video||f.link;return`<li><div><b>${esc(f.src)}${f.ep?' · Episode '+esc(f.ep):' · Catalogue'}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}${f.video?' · Direct media':''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(u)}" data-k="${esc(e.k)}" ${f.ep?`data-ep="${esc(f.ep)}"`:''}>Play</button>${f.link&&f.link!==u?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Provider</a>`:`<a class="btn sm" href="${safe(u)}" target="_blank" rel="noopener noreferrer">Open</a>`}</li>`}).join('')}</ul>`:''}
+${sourceRecords.length?`<h3 style="margin-bottom:10px">Provider links and episodes</h3><p class="note">All matching provider records are kept here. Episode links stay grouped with their episode numbers.</p><ul class="fl">${sourceRecords.map(f=>{const u=f.video||f.link;return`<li><div><b>${esc(f.src)}${f.ep?' · Episode '+esc(f.ep):' · Catalogue'}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}${f.video?' · Direct media':''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(u)}" data-k="${esc(e.k)}" ${f.ep?`data-ep="${esc(f.ep)}"`:''}>${f.ep||f.video?'Play':'Open source'}</button>${f.link&&f.link!==u?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Provider</a>`:`<a class="btn sm" href="${safe(u)}" target="_blank" rel="noopener noreferrer">Open</a>`}</li>`}).join('')}</ul>`:''}
 ${r.length?rail('You might also like','library',r):''}</div>`;
 }
 
@@ -580,6 +582,16 @@ const PRESETS=[
 {name:'AnimeSchedule · Sub',url:'https://animeschedule.net/subrss.xml'},
 {name:'AnimeSchedule · Dub',url:'https://animeschedule.net/dubrss.xml'},
 {name:'AnimeSchedule · Raw',url:'https://animeschedule.net/jpnrss.xml'},
+{name:'AniKoto · Catalog',url:'https://anikototv.to/',providerId:'anikoto',adapterId:'provider-catalog'},
+{name:'AnimePahe · Catalog',url:'https://animepahe.ch/',providerId:'animepahe',adapterId:'provider-catalog'},
+{name:'AniWorld · Catalog',url:'https://aniworld.to/',providerId:'aniworld',adapterId:'provider-catalog'},
+{name:'KickAssAnime · Catalog',url:'https://kaa.lt/',providerId:'kickassanime',adapterId:'provider-catalog'},
+{name:'Anime4Up · Catalog',url:'https://w1.anime4up.rest/',providerId:'anime4up',adapterId:'provider-catalog'},
+{name:'Anime-Sama · Catalog',url:'https://anime-sama.to/',providerId:'animesama',adapterId:'provider-catalog'},
+{name:'Latanime · Catalog',url:'https://latanime.org/',providerId:'latanime',adapterId:'provider-catalog'},
+{name:'Mugiwara · Catalog',url:'https://www.mugiwara-no-streaming.com/',providerId:'mugiwara',adapterId:'provider-catalog'},
+{name:'JustAnime · Catalog',url:'https://justanime.to/',providerId:'justanime',adapterId:'provider-catalog'},
+{name:'AnimeAV1 · Catalog',url:'https://animeav1.com/',providerId:'animeav1',adapterId:'provider-catalog'},
 {name:'Internet Archive · Animation',url:'https://archive.org/advancedsearch.php?q=collection%3Aanimationandcartoons&fl%5B%5D=identifier&fl%5B%5D=title&sort%5B%5D=downloads+desc&rows=100&page=__PAGE__&output=json',pages:3}];
 /* ---- preferences, playback choice, downloads, cloud catalog, settings ---- */
 st.prefs=Object.assign({watchMode:'auto',watchSub:'',watchDub:'',dlSub:'',dlDub:'',quality:'720p',notify:true,enabled:{}},st.prefs||{});
@@ -754,7 +766,7 @@ function srcView(){
 <div class="two">
 <section class="panel"><h3>Display</h3><p class="note">Auto picks the layout for your device. Apps built around this page can set it with ?device=win, ?device=mobile or ?device=tv.</p>
 <div class="chips" style="margin:0">${[['auto','Auto'],['win','Windows'],['mobile','Mobile'],['tv','TV']].map(([v,l])=>`<button class="chip ${(st.device||'auto')===v?'on':''}" data-act="dev" data-d="${v}">${l}${v==='auto'?' ('+DEV+')':''}</button>`).join('')}</div></section>
-<section class="panel"><h3>Quick add</h3><p class="note">Open anime catalogues. Each one loads several pages, so you get hundreds of titles.</p><div class="chips" style="margin:0 0 10px">${PRESETS.map((p,i)=>`<button class="chip" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div>
+<section class="panel"><h3>Quick add</h3><p class="note">Add catalog sources from your chosen providers. Catalog cards keep the source title and original page link.</p><div class="chips" style="margin:0 0 10px">${PRESETS.map((p,i)=>`<button class="chip" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div>
 <form id="dm" class="row" style="margin-top:6px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form>
 <form id="yt" class="row" style="margin-top:10px"><input name="n" style="flex:1;min-width:120px" placeholder="Channel name (optional)" aria-label="YouTube channel name"><input name="c" style="flex:2;min-width:200px" placeholder="YouTube channel ID (starts with UC) or feed link" aria-label="YouTube channel ID"><button class="btn" type="submit">Add YouTube</button></form></section>
 <section class="panel"><h3>Add a source</h3><form id="add" class="stack"><input name="name" placeholder="Name (optional)" aria-label="Source name"><input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address"><textarea name="raw" rows="3" placeholder="…or paste JSON / RSS text here" aria-label="Pasted data"></textarea><div class="row"><button class="btn pri" type="submit">Add source</button><label class="btn">Import file<input id="file" type="file" accept=".json,.xml,.rss,.txt" hidden></label><button class="btn" type="button" data-act="export">Export sources</button></div></form></section>
@@ -897,7 +909,7 @@ document.addEventListener('click',async ev=>{
   if(a==='dev'){st.device=b.dataset.d;save();applyDevice();draw()}
   if(a==='auto'){st.auto=st.auto===false;save();draw()}
   if(a==='quick'){const p=PRESETS[+b.dataset.i];if(st.sources.some(x=>x.name===p.name))return toast('Already added.');
-    const ns={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),items:[],...p};st.sources.push(ns);load(ns)}
+    const ns={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),items:[],...p};if(p.providerId&&st.providers[p.providerId])ns.url=st.providers[p.providerId];st.sources.push(ns);load(ns)}
   if(a==='expwl')download('ani-me-watchlist.json',JSON.stringify({app:'ani-me-log',version:1,watch:Object.values(st.watch).map(w=>({title:w.title,image:w.image||'',tag:w.tag||'Plan to watch'})),seen:st.seen},null,2));
   if(a==='export')download('sources.json',JSON.stringify(st.sources.filter(x=>x.url).map(({name,url,body,pages,size,gap})=>({name,url,body,pages,size,gap})),null,2));
 });
