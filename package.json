@@ -1,6 +1,6 @@
 {
   "name": "ani-me-log-wrapper",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Ani-Me Log web player and Capacitor wrapper with configurable provider shortcuts",
   "scripts": {
