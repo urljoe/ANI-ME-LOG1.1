@@ -29,4 +29,4 @@ The source engine is being introduced incrementally so the GitHub Pages app and 
 - `src/sources/engine.js` provides the shared provider registry, adapter selection, HTTP(S) provider URL validation, and playback resolution boundary.
 - `sources.json` contains the configured AnimeSchedule RSS feeds.
 
-The configured feed adapter continues to use the existing JSON/RSS loading and title-merging behavior. Provider shortcuts are registered centrally and remain available individually in Settings. They do not claim catalogue discovery, episode extraction, or direct-video support until a provider-supported integration is verified.
+The configured feed adapter continues to use the existing JSON/RSS parsing. Duplicate detection and merging now run through the shared engine, retaining source records and episode links. Provider shortcuts are registered centrally and remain available individually in Settings. They do not claim catalogue discovery, episode extraction, or direct-video support until a provider-supported integration is verified.
