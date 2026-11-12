@@ -52,3 +52,8 @@ Direct media URLs ending in `.mp4`, `.webm`, `.ogg` or `.m3u8` use the app's pla
 - Alternate playback chips use the direct media URL when one exists.
 - Episode numbers are normalised, so "01", "1" and "1.0" are treated as the same episode.
 - Every episode number in the grid is playable. Episodes with a direct link play that link. Episodes no provider lists open the title's source site inside the player, with a note saying so.
+- New look: a "lantern" theme with a floating bottom dock, a mosaic library grid with featured tiles, and ticket-style episode tiles.
+- Source Settings in three numbered sections (Watch, Sources, Downloads) with per-source switches, a route preview and a Confirm button. Watch mode can be auto, verified only, or manual.
+- Playback: SUB/DUB chooser when both exist, prev/next, fit/fill, fullscreen, and a source · audio · quality bar.
+- Downloads: direct video files save to the browser (IndexedDB) and play offline. Streams and website players open on their own site.
+- Cloud catalog: local index stats, per-source status, sync, and a JSON snapshot export. This is the app's local index, not a hosted database.

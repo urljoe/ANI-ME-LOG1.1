@@ -9,169 +9,224 @@
 <title>Ani-Me Log</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C5 6 3 13 8 21c5-2 9-9 4-19z' fill='%23d98c8f'/%3E%3C/svg%3E">
 <style>
-:root{--bg:#140c0e;--side:#1a0f12;--card:#22151a;--line:#3b2629;--text:#f4e7e2;--mut:#a98f8b;--ac:#d98c8f;--ac2:#c99a62;--sel:#432a2e;--serif:Georgia,"Times New Roman",serif}
+:root{--bg:#0b1115;--bg2:#0f171c;--panel:#121d24;--panel2:#172630;--line:#22343f;--text:#e9f2f0;--mut:#8ba3a6;--amber:#f2b35c;--mint:#6fd3b0;--rose:#ff8f7e;--ink:#091015;--r:16px;--disp:Bahnschrift,"DIN Alternate","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;--body:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--text);font:15px/1.5 "Segoe UI",system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
-button,input,textarea{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:4px;padding:12px 32px;background:linear-gradient(#140c0ef5,#140c0ec0);backdrop-filter:blur(8px);border-bottom:1px solid #ffffff12}
-.brand{display:flex;gap:10px;align-items:center;font:700 22px var(--serif);margin-right:22px;white-space:nowrap}
-.brand small{display:block;font:400 11px "Segoe UI",sans-serif;color:var(--mut);line-height:1}
-.nav{background:none;border:0;padding:8px 14px;color:var(--mut);cursor:pointer;font-size:16px;font-weight:600}
-.nav:hover{color:var(--text)}
-.nav.on{color:var(--text);box-shadow:inset 0 -3px var(--ac)}
+body{background:radial-gradient(1100px 560px at 90% -12%,#1b2e37 0,transparent 62%),var(--bg);color:var(--text);font:15px/1.5 var(--body);min-height:100vh;display:flex;flex-direction:column;padding-bottom:96px}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+a{color:var(--mint)}
+.top{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:16px;padding:14px 28px;background:#0b1115ea;backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:10px;align-items:center;font:700 21px var(--disp);letter-spacing:.03em;white-space:nowrap}
+.brand small{display:block;font:600 10px var(--body);letter-spacing:.22em;text-transform:uppercase;color:var(--mint)}
 .tools{margin-left:auto;display:flex;gap:10px;align-items:center}
-.search{width:200px;background:#ffffff14;border:1px solid var(--line);border-radius:999px;padding:8px 16px;outline:0;transition:width .2s}
-.search:focus{width:300px}
-.btn{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 16px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
-.btn:hover{border-color:var(--ac)}
-.btn.pri{background:var(--ac);border-color:var(--ac);color:#2a1216;font-weight:600}
-.btn.sm{padding:5px 11px;font-size:13px}
-.btn svg,.bmc svg{fill:none;stroke:currentColor;stroke-width:2}
-.btn.on svg,.bmc.on svg{fill:currentColor}
-.ptitle{padding:28px 32px 0}
-.ptitle h1{margin:0;font:700 28px var(--serif)}
-.ptitle p{margin:0;color:var(--mut);font-size:13px}
+.search{width:min(340px,40vw);padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg2)}
+.search:focus{border-color:var(--mint);outline:none}
+.ptitle{padding:26px 28px 4px}
+.ptitle h1{font:700 42px/1 var(--disp);margin:0;letter-spacing:.01em;text-transform:uppercase}
+.ptitle p{margin:6px 0 0;color:var(--mut)}
 body.nohead .ptitle{display:none}
-section{flex:1}
-.page{padding:24px 32px}
-.hero{position:relative;min-height:60vh;display:flex;align-items:center;gap:56px;padding:48px 32px 48px 8vw;overflow:hidden;border-bottom:1px solid var(--line)}
-.hero::before{content:"";position:absolute;inset:-30px;background:var(--hb,none) center/cover,#2b1b18;filter:blur(28px);opacity:.5}
-.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#140c0e 5%,#140c0e55 55%,#140c0e99),linear-gradient(0deg,#140c0e,transparent 30%)}
+#view{flex:1;min-width:0}
+.page{padding:18px 28px 28px;max-width:1500px;margin:0 auto}
+.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:20;display:flex;gap:4px;padding:6px;border-radius:999px;background:#0f1a20f2;border:1px solid #2a404b;box-shadow:0 14px 40px #0009;backdrop-filter:blur(12px);max-width:calc(100vw - 20px);overflow-x:auto;scrollbar-width:none}
+.dock::-webkit-scrollbar{display:none}
+.nav{background:none;border:0;padding:9px 14px;border-radius:999px;color:var(--mut);cursor:pointer;font:600 14px var(--body);white-space:nowrap}
+.nav:hover{color:var(--text);background:#ffffff0d}
+.nav.on{background:var(--amber);color:var(--ink)}
+footer{padding:18px 28px;color:var(--mut);font-size:12px;text-align:center;letter-spacing:.14em;text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;transition:.15s;text-decoration:none;color:var(--text)}
+.btn:hover{border-color:var(--mint)}
+.btn:disabled{opacity:.4;cursor:default;border-color:var(--line)}
+.btn.pri{background:var(--mint);border-color:var(--mint);color:var(--ink);font-weight:700}
+.btn.on{border-color:var(--amber);color:var(--amber)}
+.btn.on.pri{background:var(--amber);border-color:var(--amber);color:var(--ink)}
+.btn.sm{padding:6px 11px;font-size:13px;border-radius:9px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer;color:var(--mut);font-size:13px}
+.chip:hover{color:var(--text)}
+.chip.on{background:var(--mint);border-color:var(--mint);color:var(--ink);font-weight:700}
+.tag{display:inline-block;padding:2px 9px;border-radius:6px;background:#ffffff10;color:var(--mut);font-size:12px;margin:2px 4px 2px 0}
+.tag.hi{background:var(--amber);color:var(--ink);font-weight:700}
+.note{color:var(--mut);font-size:13px;margin:6px 0}
+.empty,.empty-box{color:var(--mut);text-align:center;padding:40px 16px;border:1px dashed var(--line);border-radius:var(--r);margin:10px 0}
+.err{color:var(--rose)}
+input,select,textarea{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--text);width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--mint)}
+label{display:block}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.stack{display:grid;gap:10px}
+h3{font:700 17px var(--disp);text-transform:uppercase;letter-spacing:.07em;margin:22px 0 12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.panel h3{margin-top:0}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:14px}
+.hero{position:relative;overflow:hidden;border-radius:22px;margin:18px 28px 6px;min-height:340px;display:flex;align-items:flex-end;padding:36px;background:var(--panel);border:1px solid var(--line)}
+.hero::before{content:"";position:absolute;inset:0;background:var(--hb) center/cover;filter:blur(30px) saturate(1.1) brightness(.42);transform:scale(1.15)}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0b1115 8%,#0b1115a0 58%,transparent)}
 .hero>*{position:relative;z-index:1}
-.hero img{height:min(52vh,460px);aspect-ratio:2/3;object-fit:cover;border-radius:6px;box-shadow:0 18px 50px #000a}
-.hero h2{margin:0 0 12px;font:700 clamp(34px,5vw,64px)/1.05 var(--serif);max-width:14ch}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.rows{padding:10px 32px 20px}
-.rh{margin:26px 0 12px;font:700 22px var(--serif)}
-.rh button{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer}
-.rh button:hover{color:var(--ac)}
+.hero>img{position:absolute;right:36px;top:36px;width:190px;aspect-ratio:2/3;object-fit:cover;border-radius:14px;z-index:1;box-shadow:0 22px 50px #000a}
+.hero h2{font:700 50px/1 var(--disp);text-transform:uppercase;margin:0 0 10px;max-width:16ch}
+.hero .row{margin-top:14px}
+.rows{padding:0 28px}
+.rh{margin:26px 0 8px}
+.rh button{background:none;border:0;cursor:pointer;font:700 15px var(--disp);text-transform:uppercase;letter-spacing:.09em;color:var(--text);padding:0}
+.rh button:hover{color:var(--mint)}
 .rw{position:relative}
-.rail{display:flex;gap:14px;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;padding:4px 2px 10px}
+.rail{display:flex;gap:14px;overflow-x:auto;scroll-behavior:smooth;scroll-snap-type:x proximity;padding:4px 2px 12px;scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
-.rail .card{flex:0 0 170px}
-.ar{position:absolute;top:28%;z-index:2;width:38px;height:70px;border:0;background:#140c0ee0;color:var(--text);font-size:26px;cursor:pointer;border-radius:8px}
-.ar.l{left:-14px}.ar.r{right:-14px}
-.ar:hover{background:var(--sel)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:18px;margin-bottom:30px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative}
-.card .open{display:block;width:100%;background:none;border:0;padding:0;text-align:left;cursor:pointer}
-.card:hover{border-color:var(--ac)}
-.poster{aspect-ratio:2/3;background:#2e1c20;position:relative;display:grid;place-items:center;font:40px var(--serif);color:var(--ac)}
+.rail .card{flex:0 0 160px;height:240px;scroll-snap-align:start}
+.ar{position:absolute;top:40%;z-index:2;width:36px;height:60px;border:1px solid var(--line);background:#0b1115e6;color:var(--text);font-size:24px;cursor:pointer;border-radius:10px}
+.ar.l{left:-12px}.ar.r{right:-12px}
+.ar:hover{border-color:var(--mint)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,1fr));grid-auto-rows:250px;grid-auto-flow:dense;gap:14px}
+.grid .card:nth-child(7n+1){grid-column:span 2;grid-row:span 2}
+.grid .card:nth-child(7n+4){grid-row:span 2}
+.card{position:relative;height:100%;border-radius:16px;overflow:hidden;background:var(--panel2);border:1px solid var(--line);transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-3px);border-color:var(--mint)}
+.card .open{position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;background:none;cursor:pointer;text-align:left;display:block}
+.poster{position:absolute;inset:0;display:grid;place-items:center;font:700 72px var(--disp);color:#ffffff1f;background:linear-gradient(160deg,#21384a,#0e181e)}
 .poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.bmc{position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:0;background:#140c0ecc;color:var(--ac);cursor:pointer;display:grid;place-items:center}
-.cb{padding:10px 12px}
-.cb b{display:block;font-size:14px;line-height:1.3}
-.cb small{color:var(--mut);font-size:12px}
-.tag{display:inline-block;background:var(--sel);border-radius:6px;padding:1px 7px;margin:4px 4px 0 0;font-size:11px}
-.tag.hi{background:var(--ac);color:#2a1216}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.chip{background:none;border:1px solid var(--line);border-radius:999px;padding:4px 14px;cursor:pointer;color:var(--mut);font-size:13px}
-.chip.on{background:var(--sel);color:var(--text);border-color:var(--ac)}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:24px}
-h3{margin:0;font:700 19px var(--serif)}
-.panel h3{margin-bottom:14px}
-.panel form{display:grid;gap:10px}
-.panel form.row{display:flex}
-.panel input,.panel textarea{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
-.note{color:var(--mut);font-size:13px;margin:0 0 10px}
-.src{display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
-.src:first-of-type{border-top:0}
-.src div{flex:1;min-width:0}
-.src small{display:block;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.err{color:#f0a08f!important;white-space:normal!important}
-.empty{color:var(--mut);padding:40px 0;text-align:center}
-.sy{display:flex;gap:32px;align-items:flex-start;margin:6px 0 28px}
-.sy img{width:220px;aspect-ratio:2/3;object-fit:cover;border-radius:8px;box-shadow:0 14px 40px #0009;flex:none}
-.sy h1{margin:0 0 8px;font:700 clamp(28px,4vw,46px)/1.1 var(--serif)}
-.meta{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
-.syn{max-width:70ch;color:#dccbc5;margin:12px 0 16px}
-.eps{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:10px;margin-bottom:28px}
-.ep{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;font-weight:600;position:relative}
-.ep small{display:block;font-weight:400;color:var(--mut);font-size:11px}
-.ep:hover{border-color:var(--ac)}
-.ep.seen{opacity:.5;background:#1a1012}.ep.seen:hover{opacity:.9}
-.ep.cur{background:var(--ac);color:#2a1216;border-color:var(--ac);opacity:1}
-.wt{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
-.epc{display:flex;flex-wrap:wrap;gap:10px}
-.epc .ep{width:46px;height:46px;border-radius:50%;padding:0;display:grid;place-items:center}
-.epc .ep.seen::after{content:none}
-.eprs{display:grid;gap:8px;max-height:420px;overflow:auto}
-.epr{text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
-.epr small{display:block;color:var(--mut);font-size:12px}
-.epr.seen{opacity:.5}.epr.seen:hover{opacity:.9}.epr.cur{border-color:var(--ac);opacity:1}
-.rec{display:flex;gap:12px;align-items:center;width:100%;background:none;border:0;padding:8px 0;cursor:pointer;text-align:left}
-.rec .rp{width:54px;aspect-ratio:2/3;background:#2e1c20;border-radius:6px;overflow:hidden;flex:none}
-.rec img{width:100%;height:100%;object-fit:cover}
-.rec b{display:block;font-size:14px}.rec small{color:var(--mut)}
-@media(max-width:900px){.wt{grid-template-columns:1fr}}
-.ep.seen::after{content:"✓";position:absolute;top:3px;right:7px;font-size:11px;color:var(--ac2)}
-.ep.off{opacity:.25;cursor:default;border-style:dashed}
-.fl{list-style:none;margin:0 0 24px;padding:0}
-.fl li{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
-.fl div{flex:1;min-width:0}
-.fl small{display:block;color:var(--mut)}
-.vid{aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;margin-bottom:14px;display:grid;place-items:center;position:relative;box-shadow:0 16px 42px #0008}
-.vid iframe,.vid video{width:100%;height:100%;border:0;display:block;background:#000}
+.cb{position:absolute;left:0;right:0;bottom:0;padding:58px 12px 12px;background:linear-gradient(transparent,#070c0ff2 52%)}
+.cb b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:700 15px/1.2 var(--body)}
+.cb small{display:block;color:var(--amber);font-size:12px;margin-top:2px}
+.cb>div{margin-top:4px}
+.cb .tag:nth-child(n+3){display:none}
+.bmc{position:absolute;top:10px;right:10px;z-index:2;width:34px;height:34px;border-radius:10px;border:1px solid #ffffff30;background:#0b1115cc;color:var(--text);cursor:pointer;display:grid;place-items:center}
+.bmc.on{background:var(--amber);color:var(--ink);border-color:var(--amber)}
+.sy{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start}
+.sy>img{width:240px;aspect-ratio:2/3;object-fit:cover;border-radius:18px;box-shadow:0 24px 60px #0009}
+.sy>div{flex:1;min-width:280px}
+.sy h1{font:700 54px/.95 var(--disp);text-transform:uppercase;margin:0 0 12px}
+.meta{margin-bottom:12px}
+.syn{color:#c7d6d3;max-width:70ch}
+.eps{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-bottom:10px}
+.ep{position:relative;padding:14px 12px 12px;border-radius:14px;border:1px solid var(--line);background:linear-gradient(135deg,#182a35,#0f181d);text-align:left;cursor:pointer;font:700 24px var(--disp);transition:border-color .15s}
+.ep:hover{border-color:var(--amber)}
+.ep small{display:block;font:400 11px var(--body);color:var(--mut);margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ep.seen{opacity:.6}
+.ep.seen::after{content:"✓";position:absolute;top:8px;right:10px;color:var(--mint);font-size:13px}
+.ep.cur{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint) inset}
+.ep:not(:disabled):not([title^="No"])[title^="Plays"]{border-style:dashed}
+.eprs{display:grid;gap:8px}
+.epr{display:flex;gap:14px;align-items:center;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);text-align:left;cursor:pointer;width:100%}
+.epr:hover{border-color:var(--amber)}
+.epr.cur{border-color:var(--mint)}
+.epr b{min-width:110px}
+.epr small{color:var(--mut)}
+.fl{list-style:none;padding:0;margin:0}
+.fl li{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--panel)}
+.fl li>div{flex:1;min-width:0}
+.fl b{display:block}
+.fl small{color:var(--mut);font-size:12px}
+.src{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--panel)}
+.src>div{flex:1;min-width:0}
+.src b{display:block}
+.src small{display:block;color:var(--mut);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.src small.err{color:var(--rose)}
+.rec{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:8px;border-radius:12px;cursor:pointer}
+.rec:hover{background:#ffffff0a}
+.rp{width:46px;height:64px;border-radius:8px;overflow:hidden;background:var(--panel2);flex:0 0 46px}
+.rp img{width:100%;height:100%;object-fit:cover}
+.rec b{display:block}
+.rec small{color:var(--mut)}
+details.play-sources{margin-top:12px}
+details.play-sources summary{cursor:pointer;color:var(--mut)}
+.wt{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;padding:12px 20px 20px;max-width:1800px;margin:0 auto}
+@media(max-width:1000px){.wt{grid-template-columns:1fr}}
+.wt>div:first-child{min-width:0}
+.wtop{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.wt-title{flex:1;min-width:200px}
+.wt-title b{display:block;font:700 19px var(--disp);text-transform:uppercase;letter-spacing:.03em}
+.wt-title small{color:var(--mut)}
+.vid{position:relative;background:#000;border-radius:18px;overflow:hidden;aspect-ratio:16/9;border:1px solid var(--line)}
+.vid video,.vid iframe{width:100%;height:100%;border:0;display:block;background:#000}
 .vid video{object-fit:contain}
-.vid iframe{color-scheme:dark}
-.play-sources{margin:8px 0 14px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#ffffff06}
-.play-sources summary{cursor:pointer;color:var(--mut);font-size:13px;user-select:none}
-.play-sources .chips{margin:10px 0 0}
-.player-title{font-weight:600;text-align:center;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@media(max-width:600px){.vid{border-radius:8px}.player-title{max-width:100%;font-size:13px}}
-.phd{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
-footer{padding:20px 32px;border-top:1px solid var(--line);color:var(--mut);font-size:13px;text-align:center;letter-spacing:.04em}
-dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:22px;width:min(1000px,96vw);max-height:94vh}
-dialog::backdrop{background:#000c}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--sel);border:1px solid var(--ac);padding:10px 18px;border-radius:10px;display:none;z-index:99}
-.tabs{display:contents}
-.dev-mobile{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
-.dev-mobile .top{flex-wrap:wrap;padding:10px 14px}
-.dev-mobile .brand{margin-right:auto;font-size:20px}
-.dev-mobile .tools{width:100%;margin:0}
-.dev-mobile .search,.dev-mobile .search:focus{flex:1;width:auto;min-height:44px}
-.dev-mobile .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;overflow-x:auto;background:#140c0ef8;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-.dev-mobile .tabs .nav{flex:1 0 auto;min-width:66px;min-height:56px;padding:6px 10px;font-size:12px;box-shadow:none}
-.dev-mobile .tabs .nav.on{box-shadow:inset 0 3px var(--ac)}
-.dev-mobile .btn{min-height:44px}
-.dev-mobile .page,.dev-mobile .rows,.dev-mobile .ptitle{padding-left:14px;padding-right:14px}
-.dev-mobile .hero{min-height:42vh;padding:28px 16px;gap:0}
-.dev-mobile .hero img,.dev-mobile .ar{display:none}
-.dev-mobile .rail .card{flex-basis:128px}
-.dev-mobile .grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
-.dev-mobile .bmc{width:40px;height:40px}
-.dev-mobile dialog{width:98vw;padding:14px}
-.dev-mobile .sy{flex-direction:column;gap:16px}.dev-mobile .sy img{width:140px}
-.dev-tv{zoom:1.3}
-.dev-tv .top,.dev-tv .page,.dev-tv .rows,.dev-tv .ptitle,.dev-tv footer{padding-left:5vw;padding-right:5vw}
-.dev-tv .ar,.dev-tv .petal{display:none}
-.dev-tv .hero{min-height:56vh}
-.dev-tv .rail .card{flex-basis:190px}
-.dev-tv .card{transition:transform .15s,border-color .15s}
-.dev-tv .card:has(:focus-visible){transform:scale(1.07);border-color:var(--ac2);z-index:2}
-.dev-tv :focus-visible{outline:4px solid var(--ac2);outline-offset:3px}
-.petal{position:fixed;top:-8vh;z-index:3;pointer-events:none;border-radius:100% 0 100% 0;opacity:.5;animation:fall linear infinite}
-@keyframes fall{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(55px,55vh) rotate(200deg)}100%{transform:translate(-35px,115vh) rotate(380deg)}}
-@media(prefers-reduced-motion:reduce){.petal{display:none}}
+.vid.fill video{object-fit:cover}
+.vid .empty{border:0;display:grid;place-items:center;height:100%;margin:0}
+.vbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.pill{padding:5px 11px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:12px;color:var(--mut)}
+.pill.amber{color:var(--amber);border-color:#f2b35c55}
+.grow{flex:1}
+.pl-h{font:700 17px var(--disp);text-transform:uppercase;letter-spacing:.07em}
+.set{display:flex;flex-direction:column;gap:14px}
+.set-sec{display:grid;grid-template-columns:70px 1fr;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.set-n{font:700 40px/1 var(--disp);color:var(--amber)}
+.set-b h3{margin:0 0 4px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px}
+.fields label span{display:block;font-size:11px;color:var(--mut);margin-bottom:6px;text-transform:uppercase;letter-spacing:.12em}
+.srcs{display:grid;gap:8px;margin-top:12px}
+.srcrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line)}
+.srcrow>div{flex:1;min-width:0}
+.srcrow b{display:block}
+.srcrow small{color:var(--mut);font-size:12px}
+.sw{position:relative;display:inline-block;width:44px;height:24px;flex:0 0 44px;margin:0}
+.sw input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}
+.sw span{position:absolute;inset:0;border-radius:999px;background:#2a3d47;transition:.2s}
+.sw span::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:var(--text);transition:.2s}
+.sw input:checked+span{background:var(--mint)}
+.sw input:checked+span::after{transform:translateX(20px);background:var(--ink)}
+.toggle-row{display:flex;align-items:center;gap:12px;margin-top:16px}
+.toggle-row small{display:block;color:var(--mut)}
+.infobox{margin-top:16px;padding:14px 16px;border-radius:12px;border:1px dashed #6fd3b055;background:#6fd3b00d}
+.infobox p{margin:4px 0 0}
+.set-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:16px 20px}
+.route{flex:1;min-width:240px;color:var(--mut);font-size:13px}
+.route b{color:var(--text);font-weight:600}
+.dl-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 18px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px}
+.dl-head b{font:700 22px var(--disp);color:var(--amber)}
+.dl-head .row{margin-left:auto}
+.dl-list{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.dl-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(120px,1fr) auto;gap:16px;align-items:center;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.dl-meta b{display:block}
+.dl-meta small{color:var(--mut)}
+.bar{height:8px;border-radius:99px;background:#ffffff12;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--amber));border-radius:99px}
+.pct{font:700 15px var(--disp);color:var(--amber)}
+.cloud-hero{display:flex;gap:20px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:24px;border-radius:22px;background:radial-gradient(640px 260px at 0 0,#1d4a48 0,transparent 70%),var(--panel);border:1px solid var(--line)}
+.kick{font:600 11px var(--body);letter-spacing:.24em;text-transform:uppercase;color:var(--mint)}
+.cloud-hero h2{font:700 46px/1 var(--disp);text-transform:uppercase;margin:8px 0}
+.cloud-state{display:flex;gap:8px;align-items:center;padding:8px 14px;border-radius:999px;background:#ffffff0c;font-size:13px}
+.cloud-state i{width:9px;height:9px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px var(--mint)}
+.cloud-state.warn i{background:var(--rose);box-shadow:0 0 12px var(--rose)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0}
+.stat{padding:16px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+.stat small{display:block;color:var(--mut);text-transform:uppercase;letter-spacing:.12em;font-size:11px}
+.stat b{display:block;font:700 34px/1.1 var(--disp);margin:6px 0 2px}
+.stat span{color:var(--mut);font-size:12px}
+.cloud-acts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.tbl{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+.tbl th{text-align:left;color:var(--mut);font-weight:600;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:8px}
+.tbl td{padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
+.schema{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;overflow-x:auto;color:#bfe9dc;font:13px/1.6 Consolas,monospace;margin:10px 0 0}
+#toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--amber);color:var(--ink);padding:10px 18px;border-radius:12px;font-weight:600;display:none;z-index:99;box-shadow:0 10px 30px #0008}
+.sheet{position:fixed;inset:0;background:#05090ccc;display:grid;place-items:center;z-index:50;padding:20px}
+.sheet-box{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:26px;max-width:460px;width:100%}
+.sheet-box small{color:var(--mint);text-transform:uppercase;letter-spacing:.14em;font-size:11px}
+.sheet-box h3{margin:6px 0 16px;font-size:20px}
+.aud-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.aud{padding:20px 14px;border-radius:16px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;text-align:left}
+.aud:hover{border-color:var(--amber)}
+.aud b{display:block;font:700 32px var(--disp);color:var(--amber)}
+.aud small{color:var(--mut);text-transform:none;letter-spacing:0;font-size:13px}
+@media(max-width:700px){.top{padding:10px 14px}.page{padding:14px}.hero{margin:12px 14px;padding:22px;min-height:300px}.hero>img{display:none}.hero h2{font-size:38px}.ptitle{padding:18px 14px 4px}.ptitle h1{font-size:30px}.search{display:none}.rows{padding:0 14px}.dl-row{grid-template-columns:1fr}.set-sec{grid-template-columns:1fr}.sy>img{width:150px}.sy h1{font-size:38px}.nav{padding:8px 10px;font-size:13px}}
 </style>
 </head>
 <body>
 <nav class="top">
-  <div class="brand"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C5 6 3 13 8 21c5-2 9-9 4-19z" fill="#d98c8f"/><path d="M12 2c3 6 1 13-4 19" fill="none" stroke="#7a4a43" stroke-width="1"/></svg><div>Ani-Me Log<small>beta</small></div></div>
-  <div class="tabs">
+  <div class="brand"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C5 6 3 13 8 21c5-2 9-9 4-19z" fill="#6fd3b0"/><path d="M12 2c3 6 1 13-4 19" fill="none" stroke="#f2b35c" stroke-width="1.2"/></svg><div>Ani-Me Log<small>beta</small></div></div>
+  <div class="tools"><input class="search" id="q" type="search" placeholder="Find a title" aria-label="Search titles"><button class="btn sm" data-act="refresh">Sync</button></div>
+</nav>
+<div class="ptitle"><h1 id="ttl">Home</h1><p id="sub"></p></div>
+<section id="view"></section>
+<nav class="dock" aria-label="Sections">
   <button class="nav" data-v="home">Home</button>
   <button class="nav" data-v="library">Library</button>
   <button class="nav" data-v="latest">Latest</button>
   <button class="nav" data-v="watchlist">Watchlist</button>
   <button class="nav" data-v="history">History</button>
-  <button class="nav" data-v="sources">Settings</button>
-  </div>
-  <div class="tools"><input class="search" id="q" type="search" placeholder="Search" aria-label="Search titles"><button class="btn sm" data-act="refresh">Refresh</button></div>
+  <button class="nav" data-v="downloads">Downloads</button>
+  <button class="nav" data-v="cloud">Cloud</button>
+  <button class="nav" data-v="settings">Settings</button>
 </nav>
-<div class="ptitle"><h1 id="ttl">Home</h1><p id="sub"></p></div>
-<section id="view"></section>
 <footer>thewiltedpetals.blooms</footer>
 <div id="toast" role="status"></div>
 <script>
@@ -180,7 +235,7 @@ let st={sources:[],proxy:'',auto:true,watch:{},hist:[],seen:{},device:'auto'},vi
 try{Object.assign(st,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(st))}catch(e){toast('Browser storage is full, so this session won’t be cached.')}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const safe=u=>/^https?:\/\//i.test(u||'')?esc(u):'';
+const safe=u=>/^(https?:\/\/|blob:)/i.test(u||'')?esc(u):'';
 const sleep=t=>new Promise(r=>setTimeout(r,t));
 const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' days ago'};
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3500)}
@@ -384,6 +439,7 @@ const epsOf=e=>{const m=new Map();(e.from||[]).forEach(f=>{const k=epKey(f.ep);i
 /* embeds and playback */
 function embedFor(u){
   let m;
+  if(/^blob:/i.test(u))return{type:'video',src:u};
   if((m=u.match(/dailymotion\.com\/(?:embed\/)?video\/([a-z0-9]+)/i))||(m=u.match(/dai\.ly\/([a-z0-9]+)/i)))return{type:'frame',src:'https://www.dailymotion.com/embed/video/'+m[1]};
   if(/rumble\.com\/embed\//i.test(u))return{type:'frame',src:u};
   if((m=u.match(/(?:youtube\.com\/watch\?(?:[^#]*&)?v=|youtu\.be\/)([\w-]{11})/i)))return{type:'frame',src:'https://www.youtube-nocookie.com/embed/'+m[1]};
@@ -415,33 +471,38 @@ function wview(){
   const p=PLAY,e=entryFor(p.k)||{k:p.k,title:p.title,from:[],tags:[],score:0};
   const epm=epsOf(e),have=[...epm.keys()].sort((a,b)=>num(a)-num(b)),sn=st.seen[p.k]||{eps:{}};
   const i=have.indexOf(String(p.ep)),pe=i>0?have[i-1]:'',ne=i>=0&&i<have.length-1?have[i+1]:'',x=p.e;
-  const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline preload="metadata" controlslist="nodownload" ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`
-    :`<iframe src="${safe(x.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${x.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`)
-    :`<p class="empty">${esc(p.msg)}</p>`;
-  const order=WSORT==='desc'?[...have].reverse():have;
+  const rec=(e.from||[]).find(f=>(f.video||f.link)===p.url);
+  const audio=p.audio||(rec&&isDub(rec)?'DUB':'SUB');
+  const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline preload="metadata" controlslist="nodownload" ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`:`<iframe src="${safe(x.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${x.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`):`<p class="empty">${esc(p.msg)}</p>`;
+  const top=Math.max(0,...have.map(num)),tot=Math.min(300,Math.max(e.total||0,top));const allN=new Set(have);for(let k=1;k<=tot;k++)allN.add(String(k));const full=[...allN].sort((a,b)=>num(a)-num(b));
+  const order=WSORT==='desc'?[...full].reverse():full;
   const cls=ep=>`${String(p.ep)===ep?'cur':''} ${sn.eps[ep]?'seen':''}`;
-  const circ=ep=>`<button class="ep ${cls(ep)}" data-act="ep" data-ep="${esc(ep)}" aria-label="Episode ${esc(ep)}">${esc(ep)}</button>`;
-  const rowb=ep=>{const f=epm.get(ep),lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');return`<button class="epr ${cls(ep)}" data-act="ep" data-ep="${esc(ep)}"><b>Episode ${esc(ep)}</b><small>${esc(lb?lb+' · ':'')}${esc(f.map(y=>y.src).join(', '))}</small></button>`};
+  const tile=ep=>`<button class="ep ${cls(ep)} ${epm.has(ep)?'':'via'}" data-act="ep" data-ep="${esc(ep)}">${esc(ep)}<small>${esc([...new Set((epm.get(ep)||[]).flatMap(y=>y.sub||[]))].join(', ')||(epm.has(ep)?'Episode '+ep:'via source'))}</small></button>`;
+  const rowb=ep=>{const f=epm.get(ep)||[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');return`<button class="epr ${cls(ep)}" data-act="ep" data-ep="${esc(ep)}"><b>Episode ${esc(ep)}</b><small>${esc(lb?lb+' · ':'')}${esc(f.map(y=>y.src).join(', '))}</small></button>`};
   const r=recs(e,LIB.list).slice(0,8);
+  const alts=p.alts||[];
   return`<div class="page"><div class="wt"><div>
-<div class="row" style="justify-content:space-between;margin-bottom:14px"><button class="btn sm" data-act="back">‹ Back</button><div class="row">${bmBtn(p.k)}<button class="btn sm" data-act="share">Share</button></div></div>
-<div class="vid">${frame}</div>
-${p.note?`<p class="note">${esc(p.note)}</p>`:''}${x&&x.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site”.</p>':''}
-<div class="row" style="justify-content:space-between;margin:10px 0 14px"><button class="btn" data-act="ep" data-ep="${esc(pe)}" ${pe?'':'disabled'}>‹ Previous episode</button><b>${esc(p.title||'')}${p.ep?' · Episode '+esc(p.ep):''}</b><button class="btn" data-act="ep" data-ep="${esc(ne)}" ${ne?'':'disabled'}>Next episode ›</button></div>
-${p.alts.length>1?`<details class="play-sources"><summary>More playback sources</summary><div class="chips">${p.alts.map(f=>`<button class="chip ${(f.video||f.link)===p.url?'on':''}" data-act="srv" data-u="${esc(f.video||f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div></details>`:''}
-<p class="note"><a href="${safe(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Open original source</a></p></div>
-<aside><div class="panel"><div class="row" style="justify-content:flex-end;margin-bottom:12px"><button class="btn sm" data-act="wlist">${WLIST?'Grid view':'List view'}</button><button class="btn sm" data-act="wsort">${WSORT==='asc'?'Oldest first':'Newest first'}</button></div>
-${have.length?(WLIST?`<div class="eprs">${order.map(rowb).join('')}</div>`:`<div class="epc">${order.map(circ).join('')}</div>`):'<p class="note">No episode numbers from your sources for this title.</p>'}</div>
-<div class="panel"><h3>For You</h3>${r.map(y=>`<button class="rec" data-open="${esc(y.k)}"><span class="rp">${y.image?`<img src="${safe(y.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span><span><b>${esc(y.title)}</b><small>${y.total?y.total+' episodes':''}${y.total&&y.tags[0]?' · ':''}${esc(y.tags[0]||'')}</small></span></button>`).join('')||'<p class="note">Nothing to suggest yet.</p>'}</div></aside></div></div>`;
+<div class="wtop"><button class="btn sm" data-act="back">‹ Back</button><div class="wt-title"><b>${esc(p.title||'')}</b><small>${p.ep?'Episode '+esc(p.ep):'Playing'} · ${esc(audio)}</small></div>
+<div class="row"><button class="btn sm" data-act="ep" data-ep="${esc(pe)}" ${pe?'':'disabled'}>‹ Prev</button><button class="btn sm" data-act="ep" data-ep="${esc(ne)}" ${ne?'':'disabled'}>Next ›</button><button class="btn sm" data-act="fit">${FIT==='fit'?'Fill frame':'Fit frame'}</button><button class="btn sm" data-act="fullscr">Fullscreen</button>${bmBtn(p.k)}<button class="btn sm" data-act="share">Share</button></div></div>
+<div class="vid ${FIT==='fill'?'fill':''}">${frame}</div>
+${p.note?`<p class="note">${esc(p.note)}</p>`:''}
+${x&&x.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open source”.</p>':''}
+<div class="vbar"><span class="pill amber">${esc(audio)}</span><span class="pill">${esc(rec?rec.src:'Source')}</span><span class="pill">${esc(qualityOf(e,p.url))}</span><span class="grow"></span><a class="btn sm" href="${safe(p.url)}" target="_blank" rel="noopener noreferrer">Open source ↗</a>${p.ep?`<button class="btn sm pri" data-act="dl" data-k="${esc(p.k)}" data-ep="${esc(p.ep)}">↓ Download episode</button>`:''}</div>
+${alts.length>1?`<details class="play-sources"><summary>${alts.length} playback sources for this episode</summary><div class="chips">${alts.map(f=>`<button class="chip ${(f.video||f.link)===p.url?'on':''}" data-act="srv" data-u="${esc(f.video||f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div></details>`:''}
+</div><aside><div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:12px"><b class="pl-h">Episodes</b><div class="row"><button class="btn sm" data-act="wlist">${WLIST?'Tiles':'List'}</button><button class="btn sm" data-act="wsort">${WSORT==='asc'?'Oldest first':'Newest first'}</button></div></div>
+${full.length?(WLIST?`<div class="eprs">${order.map(rowb).join('')}</div>`:`<div class="eps">${order.map(tile).join('')}</div>`):'<p class="note">No episode numbers from your sources for this title.</p>'}</div>
+<div class="panel"><h3>For you</h3>${r.map(y=>`<button class="rec" data-open="${esc(y.k)}"><span class="rp">${y.image?`<img src="${safe(y.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span><span><b>${esc(y.title)}</b><small>${y.total?y.total+' episodes':''}${y.total&&y.tags[0]?' · ':''}${esc(y.tags[0]||'')}</small></span></button>`).join('')||'<p class="note">Nothing to suggest yet.</p>'}</div></aside></div></div>`;
 }
-async function play(u,k,title,ep){
+
+
+async function play(u,k,title,ep,extra){
   const enteringWatch=view!=='watch';
   if(enteringWatch)history.pushState({animeLog:'watch'},'',location.href);
   const en=entryFor(k);
   if(en){st.hist=[snap(en),...st.hist.filter(h=>h.k!==en.k)].slice(0,100);save();CUR=k}
   const e=embedFor(u);
   const alts=((en&&en.from)||[]).filter(f=>(f.video||f.link)&&(!ep||String(f.ep)===String(ep))).slice(0,12);
-  PLAY={k,title,ep,url:u,e,alts,msg:'This link can’t be played inside the app. Use “Open on its own site”.'};
+  PLAY={k,title,ep,url:u,e,alts,...(extra||{}),msg:'This link can’t be played inside the app. Use “Open on its own site”.'};
   if(view!=='watch'&&view!=='title')prev=view;
   view='watch';draw();scrollTo(0,0);
   if(e&&e.type==='rumble'){
@@ -459,18 +520,6 @@ function markSeen(k,ep){
   if(st.watch[k]&&st.watch[k].tag==='Plan to watch')st.watch[k].tag='Watching';
   save();
 }
-function playEp(e,ep){
-  const key=epKey(ep)||String(ep);
-  const l=epsOf(e).get(key)||[];
-  const f=l.find(x=>(x.video||x.link)&&embedFor(x.video||x.link).type!=='page')||l.find(x=>x.video||x.link);
-  if(f){markSeen(e.k,key);play(f.video||f.link,e.k,e.title,key);return}
-  // No provider lists this episode: wrap the source site's own page for the title.
-  const s=(e.from||[]).find(x=>x.link)||(e.from||[]).find(x=>x.video);
-  if(!s)return toast('No source links for this title yet.');
-  play(s.link||s.video,e.k,e.title,key);
-  if(PLAY){PLAY.note=`Episode ${key} isn’t listed by your sources, so this shows ${s.src}’s page for the title. Pick the episode there.`;draw()}
-}
-
 /* rendering */
 const BM='<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
 const card=e=>{const w=st.watch[e.k],srcs=[...new Set((e.from||[]).map(f=>f.src))].slice(0,2),sb=[...new Set((e.from||[]).flatMap(f=>f.sub||[]))].slice(0,2);
@@ -526,30 +575,154 @@ const PRESETS=[
 {name:'AnimeSchedule · Dub',url:'https://animeschedule.net/dubrss.xml'},
 {name:'AnimeSchedule · Raw',url:'https://animeschedule.net/jpnrss.xml'},
 {name:'Internet Archive · Animation',url:'https://archive.org/advancedsearch.php?q=collection%3Aanimationandcartoons&fl%5B%5D=identifier&fl%5B%5D=title&sort%5B%5D=downloads+desc&rows=100&page=__PAGE__&output=json',pages:3}];
-function srcView(){
-  const bad=st.sources.filter(s=>s.status==='error').length;
-  return`<div class="panel"><h3>Display</h3><p class="note">Auto picks the layout for your device. Apps built around this page can set it with ?device=win, ?device=mobile or ?device=tv.</p>
-<div class="chips" style="margin:0">${[['auto','Auto'],['win','Windows'],['mobile','Mobile'],['tv','TV']].map(([v,l])=>`<button class="chip ${(st.device||'auto')===v?'on':''}" data-act="dev" data-d="${v}">${l}${v==='auto'?' ('+DEV+')':''}</button>`).join('')}</div></div>
-<div class="panel"><h3>Quick add</h3><p class="note">Open anime catalogues. Each one loads several pages, so you get hundreds of titles.</p><div class="row">${PRESETS.map((p,i)=>`<button class="btn" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div>
-<form id="dm" class="row" style="margin-top:14px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form>
-<form id="yt" class="row" style="margin-top:10px"><input name="n" style="flex:1;min-width:120px" placeholder="Channel name (optional)" aria-label="YouTube channel name"><input name="c" style="flex:2;min-width:200px" placeholder="YouTube channel ID (starts with UC) or feed link" aria-label="YouTube channel ID"><button class="btn" type="submit">Add YouTube</button></form></div>
-<div class="panel"><h3>Add a source</h3>
-<form id="add"><input name="name" placeholder="Name (optional)" aria-label="Source name">
-<input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address">
-<textarea name="raw" rows="3" placeholder="…or paste JSON / RSS text here" aria-label="Pasted data"></textarea>
-<div class="row"><button class="btn pri" type="submit">Add source</button><label class="btn">Import file<input id="file" type="file" accept=".json,.xml,.rss,.txt" hidden></label><button class="btn" type="button" data-act="export">Export sources</button></div></form></div>
-<div class="panel"><h3>Your sources (${st.sources.length})</h3>
-${bad?`<div class="row" style="margin-bottom:10px"><button class="btn sm" data-act="dropbad">Remove ${bad} failed source${bad>1?'s':''}</button></div>`:''}
-${st.sources.map(s=>`<div class="src"><div><b>${esc(s.name)}</b><small>${esc(s.url||'Pasted or imported data')}</small>
-<small class="${s.status==='error'||s.error?'err':''}">${s.status==='loading'?'Loading…':s.error||`${(s.items||[]).length} items`}</small></div>
-${s.url?`<button class="btn sm" data-act="reload" data-id="${s.id}">Reload</button>`:''}
-<button class="btn sm" data-act="del" data-id="${s.id}">Remove</button></div>`).join('')||'<p class="empty">No sources yet.</p>'}</div>
-<div class="panel"><h3>Watchlist backup</h3><p class="note">Export your watchlist and progress, or import one. Imports accept this app’s file, a JSON list of titles, or a text file with one title per line.</p>
-<div class="row"><button class="btn" data-act="expwl">Export watchlist</button><label class="btn">Import watchlist<input id="wlfile" type="file" accept=".json,.txt,.csv" hidden></label></div></div>
-<div class="panel"><h3>Network</h3><p class="note">Some sites block direct requests from a web page. With auto proxy on, a blocked source is retried in the background through public proxies, and the one that works is remembered. Those proxies can see the addresses you request, so turn it off if you’d rather not use them.</p>
-<div class="chips" style="margin:0 0 12px"><button class="chip ${st.auto!==false?'on':''}" data-act="auto">Auto proxy: ${st.auto!==false?'on':'off'}</button></div>
-<input id="proxy" value="${esc(st.proxy)}" placeholder="Optional proxy of your own: https://your-proxy.example/?url=" aria-label="Proxy prefix"></div>`;
+/* ---- preferences, playback choice, downloads, cloud catalog, settings ---- */
+st.prefs=Object.assign({watchMode:'auto',watchSub:'',watchDub:'',dlSub:'',dlDub:'',quality:'720p',notify:true,enabled:{}},st.prefs||{});
+let FIT='fit',DLC=[],DLP={};
+const enabledSrc=n=>st.prefs.enabled[n]!==false;
+const isDubRaw=t=>/\bdub(bed)?\b/i.test(String(t||''));
+const isDub=f=>isDubRaw(f.raw)||(f.sub||[]).some(x=>/dub/i.test(x));
+const typeOf=u=>((u&&embedFor(u))||{}).type||'';
+const fmtBytes=n=>n>1e9?(n/1e9).toFixed(2)+' GB':n>1e6?(n/1e6).toFixed(1)+' MB':n>1e3?Math.round(n/1e3)+' KB':n+' B';
+function qualityOf(e,u){const f=(e.from||[]).find(x=>(x.video||x.link)===u);const m=f&&String(f.raw||'').match(/(\d{3,4})p/i);if(m)return m[1]+'p';return typeOf(u)==='video'?'Direct file':'Stream'}
+function srcAudio(n){const its=(st.sources.find(s=>s.name===n)||{}).items||[];const d=its.some(i=>isDubRaw(i.raw||i.title)),s=its.some(i=>!isDubRaw(i.raw||i.title));return [s?'Sub':'',d?'Dub':''].filter(Boolean).join(' / ')||'No titles'}
+function audioOpts(e,key){const l=(epsOf(e).get(key)||[]).filter(f=>(f.video||f.link)&&enabledSrc(f.src));const o=[];if(l.some(f=>!isDub(f)))o.push('SUB');if(l.some(isDub))o.push('DUB');return o}
+function pickRecords(e,key,audio){
+  const mode=st.prefs.watchMode||'auto',want=audio==='DUB'?st.prefs.watchDub:st.prefs.watchSub;
+  let l=(epsOf(e).get(key)||[]).filter(f=>(f.video||f.link)&&enabledSrc(f.src));
+  if(audio)l=l.filter(f=>isDub(f)===(audio==='DUB'));
+  if(mode==='verified')l=l.filter(f=>['video','hls','frame'].includes(typeOf(f.video||f.link)));
+  const rank=f=>{const t=typeOf(f.video||f.link);let r={video:0,hls:0,frame:1,rumble:2,page:3}[t];if(r===undefined)r=9;if(want&&f.src===want)r-=mode==='manual'?5:0.5;return r};
+  return l.sort((a,b)=>rank(a)-rank(b));
 }
+function showAudioPicker(e,key){
+  document.querySelector('#audio')?.remove();
+  const o=document.createElement('div');o.id='audio';o.className='sheet';
+  o.innerHTML=`<div class="sheet-box"><small>Select audio · Episode ${esc(key)}</small><h3>${esc(e.title)}</h3><div class="aud-opts"><button class="aud" data-act="audio" data-k="${esc(e.k)}" data-ep="${esc(key)}" data-a="SUB"><b>SUB</b><small>Original audio with subtitles</small></button><button class="aud" data-act="audio" data-k="${esc(e.k)}" data-ep="${esc(key)}" data-a="DUB"><b>DUB</b><small>English dubbed audio</small></button></div><button class="btn sm" data-act="closeaudio">Cancel</button></div>`;
+  document.body.appendChild(o);
+}
+function playEp(e,ep,audio){
+  const key=epKey(ep)||String(ep),opts=audioOpts(e,key);
+  if(!audio&&opts.length>1){showAudioPicker(e,key);return}
+  if(!audio&&opts.length===1)audio=opts[0];
+  const f=pickRecords(e,key,audio)[0];
+  if(f){markSeen(e.k,key);play(f.video||f.link,e.k,e.title,key,{audio:audio||'SUB'});return}
+  if((st.prefs.watchMode||'auto')==='verified')return toast('No verified link for episode '+key+'. Change Watch mode in Settings.');
+  const s=(e.from||[]).find(x=>x.link&&enabledSrc(x.src))||(e.from||[]).find(x=>x.video&&enabledSrc(x.src));
+  if(!s)return toast('No source links for this title yet.');
+  play(s.link||s.video,e.k,e.title,key,{audio:audio||'SUB',note:`Episode ${key} isn’t listed by your sources, so this shows ${s.src}’s page for the title. Pick the episode there.`});
+}
+
+/* IndexedDB store for downloaded episodes */
+const DBN='ani-me-downloads';
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DBN,1);r.onupgradeneeded=()=>r.result.createObjectStore('eps',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function dbRun(mode,fn){const d=await openDB();return new Promise((res,rej)=>{const t=d.transaction('eps',mode);const req=fn(t.objectStore('eps'));t.oncomplete=()=>res(req?req.result:undefined);t.onerror=()=>rej(t.error)})}
+const dbAll=()=>dbRun('readonly',s=>s.getAll());
+const dbGet=id=>dbRun('readonly',s=>s.get(id));
+const dbPut=v=>dbRun('readwrite',s=>s.put(v));
+const dbDel=id=>dbRun('readwrite',s=>s.delete(id));
+async function loadDL(){try{const all=await dbAll();DLC=all.map(({blob,...m})=>m).sort((a,b)=>b.at-a.at)}catch(err){DLC=[]}render()}
+async function deleteDownload(id){await dbDel(id);await loadDL();toast('Deleted from this device.')}
+async function clearDL(){await dbRun('readwrite',s=>s.clear());await loadDL()}
+async function playDownload(id){const d=await dbGet(id);if(!d||!d.blob)return toast('That download is gone.');const u=URL.createObjectURL(d.blob);markSeen(d.k,d.ep);play(u,d.k,d.title,d.ep,{audio:d.audio||'SUB'})}
+async function downloadEp(k,ep){
+  const e=entryFor(k);if(!e)return;
+  const key=epKey(ep)||String(ep);
+  const qn=String(st.prefs.quality||'720p').replace('p','');
+  const score=f=>(String(f.raw||'').includes(qn)?2:0)+(f.src===st.prefs.dlSub||f.src===st.prefs.dlDub?1:0);
+  const cands=pickRecords(e,key,null).filter(f=>typeOf(f.video)==='video').sort((a,b)=>score(b)-score(a));
+  const rec=cands[0];
+  const page=(e.from||[]).find(f=>f.link);
+  if(!rec){if(page){window.open(page.link,'_blank','noopener');toast('This source has its own download controls. Opened it on its site.')}else toast('No downloadable link for this episode yet.');return}
+  const id=k+'|'+key;
+  DLP[id]={title:e.title,ep:key,src:rec.src,pct:0};render();
+  try{
+    const r=await fetch(rec.video);if(!r.ok)throw new Error('HTTP '+r.status);
+    const total=+r.headers.get('content-length')||0,reader=r.body.getReader(),parts=[];let got=0;
+    for(;;){const {done,value}=await reader.read();if(done)break;parts.push(value);got+=value.length;if(total)DLP[id].pct=got/total*100;render()}
+    const blob=new Blob(parts,{type:r.headers.get('content-type')||'video/mp4'});
+    await dbPut({id,k,title:e.title,ep:key,src:rec.src,size:blob.size,at:Date.now(),audio:isDub(rec)?'DUB':'SUB',blob});
+    delete DLP[id];await loadDL();toast('Saved to this device.');
+  }catch(err){
+    delete DLP[id];render();
+    if(page)window.open(page.link,'_blank','noopener');
+    toast('This site doesn’t let the app save the file, so it opened on its site.');
+  }
+}
+function dlView(){
+  const busy=Object.entries(DLP).map(([id,p])=>({id,title:p.title,ep:p.ep,src:p.src,pct:p.pct||0,busy:true}));
+  const done=DLC.map(d=>({...d,pct:100,busy:false}));
+  const total=DLC.reduce((a,d)=>a+(d.size||0),0);
+  const rows=[...busy,...done];
+  return`<div class="dl-head"><span><b>${DLC.length}</b> saved on this device</span><span><b>${fmtBytes(total)}</b> used</span><span class="note" style="margin:0">Kept in this browser profile, so they play with no connection.</span><div class="row">${DLC.length?'<button class="btn sm" data-act="dlclr">Clear all</button>':''}</div></div>
+${rows.length?`<ul class="dl-list">${rows.map(r=>`<li class="dl-row"><div class="dl-meta"><b>${esc(r.title)}</b><small>Episode ${esc(r.ep)} · ${esc(r.src||'')}${r.busy?' · downloading':' · '+fmtBytes(r.size||0)}</small></div>${r.busy?`<div class="bar"><i style="width:${Math.max(4,r.pct).toFixed(0)}%"></i></div><span class="pct">${Math.round(r.pct)}%</span>`:`<div class="bar"><i style="width:100%"></i></div><div class="row"><button class="btn sm pri" data-act="dlplay" data-id="${esc(r.id)}">▶ Play</button><button class="btn sm" data-act="dldel" data-id="${esc(r.id)}">Delete</button></div>`}</li>`).join('')}</ul>`:`<div class="empty-box"><b>Nothing saved yet</b><p class="note">Open a title, pick an episode and press Download episode. Direct video files save to this device. Streams and website players open on their own site, where their download controls apply.</p></div>`}`;
+}
+
+/* local catalog index ("cloud" panel) */
+function snapshot(){return{schema:'ani-me-catalog',version:2,exportedAt:new Date().toISOString(),sources:st.sources.map(s=>({name:s.name,url:s.url||'',status:s.status||'',items:(s.items||[]).length,updated:s.updated||null})),titles:LIB.list.map(e=>({title:e.title,aliases:e.aliases||[],tags:e.tags||[],total:e.total||0,score:e.score||0,episodes:Object.fromEntries([...epsOf(e)].map(([k,l])=>[k,l.map(f=>({source:f.src,link:f.link||'',video:f.video||''}))]))}))}}
+function cloudView(){
+  const L=LIB.list,links=L.reduce((a,e)=>a+(e.from||[]).length,0);
+  const keys=new Set();L.forEach(e=>epsOf(e).forEach((_,k)=>keys.add(e.k+'|'+k)));
+  const direct=L.reduce((a,e)=>a+(e.from||[]).filter(f=>f.video).length,0);
+  const ok=st.sources.filter(s=>s.status==='ok').length,bad=st.sources.filter(s=>s.status==='error').length;
+  const last=Math.max(0,...st.sources.map(s=>s.updated||0));
+  const stat=(l,v,n)=>`<div class="stat"><small>${l}</small><b>${v}</b><span>${n}</span></div>`;
+  const schema=`{
+  "title": "Umayuru: Full Gate!",
+  "aliases": ["Umayuru Full Gate"],
+  "tags": ["Comedy"],
+  "episodes": {
+    "1": [{ "source": "AniKoto", "link": "https://…", "video": "https://…/ep1.mp4" }]
+  }
+}`;
+  return`<div class="cloud">
+<div class="cloud-hero"><div><span class="kick">Catalog database</span><h2>${L.length} titles indexed</h2><p class="note" style="max-width:62ch">Every source is merged into one record per title. Names and alternate names are matched, so one show from several providers becomes one entry with every link kept.</p></div>
+<div class="cloud-state ${bad?'warn':''}"><i></i>${bad?bad+' source'+(bad>1?'s':'')+' need attention':'All sources reachable'}</div></div>
+<div class="stats">${stat('Titles',L.length,'merged records')}${stat('Provider links',links,'kept as found')}${stat('Episodes',keys.size,'title + number')}${stat('Direct video',direct,'playable and saveable')}${stat('Sources',ok+' / '+st.sources.length,'loaded OK')}${stat('Last sync',last?ago(last):'never','from your sources')}</div>
+<div class="cloud-acts"><button class="btn pri" data-act="sync">Sync now</button><button class="btn" data-act="snap">Download snapshot (JSON)</button></div>
+<h3>Sources in this catalog</h3>
+<table class="tbl"><thead><tr><th>Source</th><th>Status</th><th>Titles</th><th>Updated</th></tr></thead><tbody>${st.sources.map(s=>`<tr><td><b>${esc(s.name)}</b><br><small class="note" style="margin:0">${esc(s.url||'pasted data')}</small></td><td>${s.status==='error'?'<span class="err">Failed</span>':s.status==='loading'?'Loading':'OK'}</td><td>${(s.items||[]).length}</td><td>${s.updated?ago(s.updated):'—'}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">No sources yet.</td></tr>'}</tbody></table>
+<h3>Record shape</h3><p class="note">What one title looks like inside the snapshot file. Values are examples.</p><pre class="schema">${esc(schema)}</pre>
+</div>`;
+}
+
+/* Settings: 01 Watch, 02 Sources, 03 Downloads, then the source and network tools */
+function srcView(){
+  const P=st.prefs,names=st.sources.map(s=>s.name);
+  const opt=(v,cur,l)=>`<option value="${esc(v)}"${cur===v?' selected':''}>${esc(l)}</option>`;
+  const srcOpts=(cur,empty)=>opt('',cur,empty)+names.map(n=>opt(n,cur,n)).join('');
+  const modes=[['auto','Auto — any working link'],['verified','Verified only — skip website pages'],['manual','Manual — my choice first']];
+  const qual=['360p','480p','720p','1080p'];
+  const bad=st.sources.filter(s=>s.status==='error').length;
+  const route=`Watch: <b>${esc(P.watchSub||'best link')}</b> for sub, <b>${esc(P.watchDub||'best link')}</b> for dub${P.watchMode==='verified'?' · verified links only':''}. Downloads: <b>${esc(P.dlSub||'best source')}</b> at <b>${esc(P.quality)}</b>.`;
+  return`<form id="prefs" class="set">
+<section class="set-sec"><div class="set-n">01</div><div class="set-b"><h3>Watch</h3><p class="note">How the player picks a stream when you press play.</p>
+<div class="fields"><label><span>Watch mode</span><select name="watchMode">${modes.map(([v,l])=>opt(v,P.watchMode,l)).join('')}</select></label>
+<label><span>Watch sub</span><select name="watchSub">${srcOpts(P.watchSub,'Auto')}</select></label>
+<label><span>Watch dub</span><select name="watchDub">${srcOpts(P.watchDub,'Auto')}</select></label></div></div></section>
+<section class="set-sec"><div class="set-n">02</div><div class="set-b"><h3>Sources</h3><p class="note">Switch a source off and playback and downloads skip it.</p>
+<div class="srcs">${st.sources.map(s=>`<div class="srcrow"><div><b>${esc(s.name)}</b><small>${esc(srcAudio(s.name))} · ${(s.items||[]).length} titles</small></div><label class="sw"><input type="checkbox" name="en:${esc(s.name)}"${enabledSrc(s.name)?' checked':''}><span></span></label></div>`).join('')||'<p class="empty">No sources yet. Add one below.</p>'}</div></div></section>
+<section class="set-sec"><div class="set-n">03</div><div class="set-b"><h3>Downloads</h3><p class="note">Used when you press Download episode.</p>
+<div class="fields"><label><span>Download sub</span><select name="dlSub">${srcOpts(P.dlSub,'Best source')}</select></label>
+<label><span>Download dub</span><select name="dlDub">${srcOpts(P.dlDub,'Best source')}</select></label>
+<label><span>Preferred resolution</span><select name="quality">${qual.map(q=>opt(q,P.quality,q)).join('')}</select></label></div>
+<div class="toggle-row"><label class="sw"><input type="checkbox" name="notify"${P.notify?' checked':''}><span></span></label><div><b>New episode notifications</b><small>Shown while the app is open.</small></div></div>
+<div class="infobox"><b>How saving works</b><p class="note">Direct video files save to this device. Streams and website players open on their own site, where their download controls apply.</p></div></div></section>
+<div class="set-foot"><div class="route">${route}</div><button class="btn pri" type="submit">Confirm settings</button></div>
+</form>
+<div class="two">
+<section class="panel"><h3>Display</h3><p class="note">Auto picks the layout for your device. Apps built around this page can set it with ?device=win, ?device=mobile or ?device=tv.</p>
+<div class="chips" style="margin:0">${[['auto','Auto'],['win','Windows'],['mobile','Mobile'],['tv','TV']].map(([v,l])=>`<button class="chip ${(st.device||'auto')===v?'on':''}" data-act="dev" data-d="${v}">${l}${v==='auto'?' ('+DEV+')':''}</button>`).join('')}</div></section>
+<section class="panel"><h3>Quick add</h3><p class="note">Open anime catalogues. Each one loads several pages, so you get hundreds of titles.</p><div class="chips" style="margin:0 0 10px">${PRESETS.map((p,i)=>`<button class="chip" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div>
+<form id="dm" class="row" style="margin-top:6px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form>
+<form id="yt" class="row" style="margin-top:10px"><input name="n" style="flex:1;min-width:120px" placeholder="Channel name (optional)" aria-label="YouTube channel name"><input name="c" style="flex:2;min-width:200px" placeholder="YouTube channel ID (starts with UC) or feed link" aria-label="YouTube channel ID"><button class="btn" type="submit">Add YouTube</button></form></section>
+<section class="panel"><h3>Add a source</h3><form id="add" class="stack"><input name="name" placeholder="Name (optional)" aria-label="Source name"><input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address"><textarea name="raw" rows="3" placeholder="…or paste JSON / RSS text here" aria-label="Pasted data"></textarea><div class="row"><button class="btn pri" type="submit">Add source</button><label class="btn">Import file<input id="file" type="file" accept=".json,.xml,.rss,.txt" hidden></label><button class="btn" type="button" data-act="export">Export sources</button></div></form></section>
+<section class="panel"><h3>Your sources (${st.sources.length})</h3>${bad?`<div class="row" style="margin-bottom:10px"><button class="btn sm" data-act="dropbad">Remove ${bad} failed source${bad>1?'s':''}</button></div>`:''}
+${st.sources.map(s=>`<div class="src"><div><b>${esc(s.name)}</b><small>${esc(s.url||'Pasted or imported data')}</small><small class="${s.status==='error'||s.error?'err':''}">${s.status==='loading'?'Loading…':s.error||`${(s.items||[]).length} items`}</small></div>${s.url?`<button class="btn sm" data-act="reload" data-id="${s.id}">Reload</button>`:''}<button class="btn sm" data-act="del" data-id="${s.id}">Remove</button></div>`).join('')||'<p class="empty">No sources yet.</p>'}</section>
+<section class="panel"><h3>Watchlist backup</h3><p class="note">Export your watchlist and progress, or import one. Imports accept this app’s file, a JSON list of titles, or a text file with one title per line.</p><div class="row"><button class="btn" data-act="expwl">Export watchlist</button><label class="btn">Import watchlist<input id="wlfile" type="file" accept=".json,.txt,.csv" hidden></label></div></section>
+<section class="panel"><h3>Network</h3><p class="note">Some sites block direct requests from a web page. With auto proxy on, a blocked source is retried in the background through public proxies, and the one that works is remembered. Those proxies can see the addresses you request, so turn it off if you’d rather not use them.</p><div class="chips" style="margin:0 0 12px"><button class="chip ${st.auto!==false?'on':''}" data-act="auto">Auto proxy: ${st.auto!==false?'on':'off'}</button></div><input id="proxy" value="${esc(st.proxy)}" placeholder="Optional proxy of your own: https://your-proxy.example/?url=" aria-label="Proxy prefix"></section>
+</div>`;
+}
+
 
 function draw(){
   LIB=build();const L=LIB.list;
@@ -569,7 +742,7 @@ function draw(){
       h=hero?`<div class="hero" style="--hb:url('${safe(hero.image).replace(/'/g,'%27')}')">${hero.image?`<img src="${safe(hero.image)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<div><h2>${esc(hero.title)}</h2>
 <p class="note">${hero.ep?`Episode ${esc(hero.ep)} · `:''}On ${new Set(hero.from.map(f=>f.src)).size} source(s)</p>
 <div class="row"><button class="btn pri" data-act="playbest" data-k="${esc(hero.k)}">▶ Play</button><button class="btn" data-open="${esc(hero.k)}">Synopsis</button>${bmBtn(hero.k)}</div></div></div>`
-      :`<div class="hero"><div><h2>Add your first source</h2><p class="note">Add a site or feed and Ani-Me Log lists what it has.</p><button class="btn pri" data-act="go" data-v="sources">Open Settings</button></div></div>`;
+      :`<div class="hero"><div><h2>Add your first source</h2><p class="note">Add a site or feed and Ani-Me Log lists what it has.</p><button class="btn pri" data-act="go" data-v="settings">Open Settings</button></div></div>`;
       h+=`<div class="rows">`+(latest.length?rail('Latest','latest',latest.slice(0,24)):'');
       if(W.length)h+=rail('Watchlist','watchlist',W.slice(0,24));
       if(H.length)h+=rail('History','history',H.slice(0,24));
@@ -580,12 +753,12 @@ function draw(){
   else if(view==='latest'){const f=flt(latest);T=['Latest','Newest first'];h=chips()+grid(f.slice(0,LIM),'No titles yet. Add a source under Settings.')+more(f)}
   else if(view==='watchlist'){const f=flt(W);T=['Watchlist',`${W.length} saved`];h=grid(f,'Tap the bookmark on any title to save it here.')}
   else if(view==='history'){const f=flt(H);T=['History','Recently opened'];h=(H.length?`<div class="row" style="margin-bottom:16px"><button class="btn sm" data-act="clrh">Clear history</button></div>`:'')+grid(f,'Titles you open will appear here.')}
-  else{T=['Settings','Sources, network and backup'];h=srcView()}
+  else if(view==='downloads'){T=['Downloads',DLC.length?DLC.length+' saved on this device':'Offline copies'];h=dlView()}else if(view==='cloud'){T=['Cloud catalog','Local index built from your sources'];h=cloudView()}else{T=['Settings','01 Watch · 02 Sources · 03 Downloads'];h=srcView()}
   if(view!=='home'&&view!=='title'&&view!=='watch')h=`<div class="page">${h}</div>`;
   document.body.classList.toggle('nohead',view==='home'||view==='title'||view==='watch');
   $('#ttl').textContent=T[0];$('#sub').textContent=T[1];
   if(document.activeElement?.id==='proxy')return;
-  const sig=view==='watch'&&PLAY?[PLAY.k,PLAY.ep,PLAY.url,PLAY.e&&PLAY.e.src,WSORT,WLIST,wl(PLAY.k),Object.keys((st.seen[PLAY.k]||{eps:{}}).eps).length].join('|'):'',vw=$('#view');
+  const sig=view==='watch'&&PLAY?[PLAY.k,PLAY.ep,PLAY.url,PLAY.e&&PLAY.e.src,WSORT,WLIST,FIT,wl(PLAY.k),Object.keys((st.seen[PLAY.k]||{eps:{}}).eps).length].join('|'):'',vw=$('#view');
   if(sig&&vw.dataset.w===sig&&vw.querySelector('.vid iframe,.vid video'))return;
   vw.dataset.w=sig;vw.innerHTML=h;attachHls();
   if(DEV==='tv'&&document.activeElement===document.body){const f=$('#view .btn.pri,#view .open');if(f)f.focus({preventScroll:true})}
@@ -614,6 +787,16 @@ document.addEventListener('click',async ev=>{
   if(o&&!ev.target.closest('.bmc')){openTitle(o.dataset.open);return}
   const b=ev.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,s=st.sources.find(x=>x.id===b.dataset.id);
+  if(a==='fit'){FIT=FIT==='fit'?'fill':'fit';draw();return}
+  if(a==='fullscr'){const el=$('#pv')||$('#view iframe');if(el&&el.requestFullscreen)el.requestFullscreen().catch(()=>toast('Fullscreen is blocked here.'));return}
+  if(a==='audio'){document.querySelector('#audio')?.remove();const e=entryFor(b.dataset.k);if(e)playEp(e,b.dataset.ep,b.dataset.a);return}
+  if(a==='closeaudio'){document.querySelector('#audio')?.remove();return}
+  if(a==='dl'){downloadEp(b.dataset.k,b.dataset.ep);return}
+  if(a==='dlplay'){playDownload(b.dataset.id);return}
+  if(a==='dldel'){deleteDownload(b.dataset.id);return}
+  if(a==='dlclr'){if(confirm('Delete every saved episode on this device?'))clearDL();return}
+  if(a==='snap'){download('ani-me-catalog.json',JSON.stringify(snapshot(),null,2));return}
+  if(a==='sync'){if(!st.sources.length)return toast('Add a source first.');await runAll(st.sources.filter(s=>s.url));toast('Catalog synced.');render();return}
   if(a==='go'){view=b.dataset.v;LIM=120;if(b.dataset.s!==undefined)fsrc=b.dataset.s;draw();scrollTo(0,0)}
   if(a==='back'){if(history.state&&history.state.animeLog==='watch'){history.back()}else{view=view==='watch'&&entryFor(CUR)?'title':(prev||'home');PLAY=null;draw();scrollTo(0,0)}}
   if(a==='more'){LIM+=120;draw()}
@@ -674,6 +857,14 @@ document.addEventListener('input',ev=>{
   if(ev.target.id==='proxy'){st.proxy=ev.target.value.trim();save()}
 });
 
+document.addEventListener('submit',ev=>{
+  if(ev.target.id!=='prefs')return;ev.preventDefault();
+  const f=ev.target,v=n=>(f.elements[n]||{}).value||'';
+  Object.assign(st.prefs,{watchMode:v('watchMode')||'auto',watchSub:v('watchSub'),watchDub:v('watchDub'),dlSub:v('dlSub'),dlDub:v('dlDub'),quality:v('quality')||'720p',notify:!!(f.elements.notify&&f.elements.notify.checked)});
+  st.prefs.enabled={};st.sources.forEach(s=>{const c=f.elements['en:'+s.name];st.prefs.enabled[s.name]=!!(c&&c.checked)});
+  save();toast('Settings saved');render();
+});
+
 /* Browser and wrapped-app back navigation (Android system back maps to popstate). */
 addEventListener('popstate',()=>{
   if(view==='watch'){view=entryFor(CUR)?'title':(prev||'home');PLAY=null;draw();scrollTo(0,0);return;}
@@ -715,12 +906,6 @@ document.addEventListener('keydown',ev=>{
   if(best){best.focus();best.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});ev.preventDefault()}
 });
 
-/* drifting petals */
-(()=>{const c=['#d98c8f','#b9686f','#c99a62','#8a5a4a','#e3b0a6'];
-  for(let i=0;i<16;i++){const p=document.createElement('i'),w=10+Math.random()*14;p.className='petal';
-    Object.assign(p.style,{left:Math.random()*100+'vw',width:w+'px',height:w*1.3+'px',background:`linear-gradient(135deg,${c[i%5]},#5a3a32)`,animationDuration:(16+Math.random()*16)+'s',animationDelay:(-Math.random()*30)+'s'});
-    document.body.appendChild(p)}})();
-
 /* start: pull the repo's sources.json, retire old broken entries, load what's empty */
 const LEGACY=new Set(['https://api.jikan.moe/v4/top/anime','https://api.jikan.moe/v4/seasons/now','https://kitsu.io/api/edge/anime?sort=-userCount&page[limit]=20','https://kitsu.io/api/edge/anime?filter[status]=current&sort=-userCount&page[limit]=20','https://graphql.anilist.co']);
 (async()=>{
@@ -740,6 +925,7 @@ const LEGACY=new Set(['https://api.jikan.moe/v4/top/anime','https://api.jikan.mo
   save();draw();
   runAll(st.sources.filter(s=>s.url&&!(s.items||[]).length));
 })();
+loadDL();
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
