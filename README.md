@@ -20,3 +20,13 @@ Deploy the web app as usual. The Android app wraps the same `index.html` using C
 - `npx cap add android` (first Android project setup)
 - `npm run sync`
 - `npx cap open android`
+
+## Source engine and project layout
+
+The source engine is being introduced incrementally so the GitHub Pages app and Capacitor wrapper keep using the same entry point.
+
+- `index.html` remains the current application entry point.
+- `src/sources/engine.js` provides the shared provider registry, adapter selection, HTTP(S) provider URL validation, and playback resolution boundary.
+- `sources.json` contains the configured AnimeSchedule RSS feeds.
+
+The configured feed adapter continues to use the existing JSON/RSS loading and title-merging behavior. Provider shortcuts are registered centrally and remain available individually in Settings. They do not claim catalogue discovery, episode extraction, or direct-video support until a provider-supported integration is verified.
