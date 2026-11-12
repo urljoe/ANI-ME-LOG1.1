@@ -4,6 +4,7 @@
   "private": true,
   "description": "Ani-Me Log web player and Capacitor wrapper with configurable provider shortcuts",
   "scripts": {
+    "test": "node --test",
     "android": "cap open android",
     "ios": "cap open ios",
     "sync": "cap sync"
