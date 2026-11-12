@@ -258,7 +258,11 @@ st.health=st.health||{};
 function setHealth(name,kind,state,detail='',url=''){if(!name)return;st.health[name]=st.health[name]||{};st.health[name][kind]={state,detail,checkedAt:Date.now(),url};save()}
 function healthState(name,kind){return st.health[name]?.[kind]?.state||'unknown'}
 function playbackSourceName(){return PLAY?.sourceName||PLAY?.sourceAttribution||'Unknown source'}
-function recordPlaybackHealth(state,detail=''){if(!PLAY)return;setHealth(playbackSourceName(),'playback',state,detail,PLAY.url||'')}
+function playbackHealthKey(name){
+  const provider=SourceEngine.listProviders().find(p=>name===p.name||name.startsWith(p.name+' ·'));
+  return provider?provider.name:name;
+}
+function recordPlaybackHealth(state,detail=''){if(!PLAY)return;setHealth(playbackHealthKey(playbackSourceName()),'playback',state,detail,PLAY.url||'')}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safe=u=>/^(https?:\/\/|blob:)/i.test(u||'')?esc(u):'';
 const sleep=t=>new Promise(r=>setTimeout(r,t));
@@ -857,19 +861,19 @@ function importWL(txt){
   save();draw();toast(n+' added to your watchlist.');
 }
 
-/* Each tap seeks ten seconds on native video; provider-controlled embeds handle their own controls. */
-document.addEventListener('pointerup',ev=>{
-  const zone=ev.target.closest('.seek-zone');
-  if(!zone||!PLAY||!PLAY.e||!['video','hls'].includes(PLAY.e.type))return;
+/* One tap skips ten seconds; each repeated tap adds another ten seconds. */
+function seekByZone(zone){
+  if(!PLAY||!PLAY.e||!['video','hls'].includes(PLAY.e.type))return;
   const v=$('#pv');if(!v)return;
   const side=zone.dataset.seek,delta=side==='left'?-10:10;
   const end=Number.isFinite(v.duration)?v.duration:Infinity;
   v.currentTime=Math.min(end,Math.max(0,(v.currentTime||0)+delta));
   const flash=$('#seek-flash');
   if(flash){flash.textContent=side==='left'?'−10 seconds ↶':'+10 seconds ↷';flash.classList.add('show');clearTimeout(flash._hideTimer);flash._hideTimer=setTimeout(()=>flash.classList.remove('show'),650)}
-});
+}
 /* events */
 document.addEventListener('click',async ev=>{
+  const seekZone=ev.target.closest('.seek-zone');if(seekZone){seekByZone(seekZone);return}
   const n=ev.target.closest('.nav');if(n){view=n.dataset.v;PLAY=null;LIM=120;draw();scrollTo(0,0);return}
   const o=ev.target.closest('[data-open]');
   if(o&&!ev.target.closest('.bmc')){openTitle(o.dataset.open);return}
