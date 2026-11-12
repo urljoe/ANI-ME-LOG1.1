@@ -12,7 +12,7 @@ Every adapter is registered with a unique `id`.
 - `resolve(record)`, when provided, returns a safe playback target shaped as `{ type, src, fallbackUrl, attribution }`, or `null` when no usable target exists.
 - The engine retains `adapterId` and source name on each provenance record. The app uses the resolved source URL, displays its source label, and offers the original page when an embedded page cannot play.
 
-Adapters must not scrape undocumented private endpoints, bypass access controls, or label a site link as a direct stream. Keep feed loading behind the existing timeout/proxy handling in `index.html`.
+Adapters must not access private endpoints, bypass access controls, or label a site page as a direct stream. Keep feed loading behind the existing timeout/proxy handling in `index.html`.
 
 ## First provider path: AnimeSchedule RSS
 
@@ -28,15 +28,21 @@ Adapters must not scrape undocumented private endpoints, bypass access controls,
 
 AnimeSchedule describes its data as schedule/release information and offers an RSS feed. This adapter is therefore a schedule/title source, not a streaming extractor.
 
-## Other provider status
+## Provider catalog integrations
 
-AniKoto, AnimePahe, ReAnime, DonghuaZone, DonghuaNation, AnimeKhor, and DonghuaStream remain individually configurable website shortcuts. No provider-specific adapter is enabled for those names. Third-party scraper projects are evidence that code exists, not evidence that the provider supports or authorizes an integration.
+Quick Add now includes catalog sources for AniKoto, AnimePahe, AniWorld, KickAssAnime, Anime4Up, Anime-Sama, Latanime, Mugiwara, JustAnime, and AnimeAV1.
+
+These integrations are catalog-only. They read public catalog pages or the source app’s public catalog data, then return normalized title cards with the original provider page and attribution. AnimePahe entries can include an episode number when its public posts feed supplies one. The integrations do not resolve or extract media URLs; the player opens the original provider page.
+
+The default domains come from the user-provided Anime Vault installer and may be stale. Each Quick Add item can use the matching address saved in Settings instead. Catalog pages can change, block browser requests, or require the app’s existing proxy handling. Each source loads a limited catalog page, not a full multi-page crawl.
+
+AniKoto, AnimePahe, ReAnime, DonghuaZone, DonghuaNation, AnimeKhor, and DonghuaStream also remain individually configurable website shortcuts. The eight newly added provider names have shortcut fields as well as catalog Quick Add entries.
 
 ## Review checklist for each next provider
 
-1. Locate a provider-owned public API/feed or obtain a supported integration agreement.
-2. Record whether it supplies discovery, metadata, episode numbering, direct media, or provider-controlled embeds.
-3. Map its response into the normalized record shape and retain the original title, URL, and provider label.
-4. Confirm playback type before sending it to the player; keep the original provider page as fallback.
-5. Keep failures isolated to that adapter and report rate limits, CORS, and unavailable feeds accurately.
-6. Verify source import, duplicate merge/provenance, original-brand display, and playback/fallback in the deployed app before calling the provider integration complete.
+1. Confirm its public catalog page or public catalog endpoint and current hostname.
+2. Record whether it provides title cards, artwork, episode numbers, episode pages, direct media, or provider-controlled embeds.
+3. Map only the available catalog fields into normalized records; retain the original title, page URL, and provider label.
+4. Keep the provider page as the playback target unless a supported direct-media integration is documented.
+5. Keep failures isolated to that adapter and report CORS, rate limits, domain changes, and unavailable feeds accurately.
+6. Verify title import, duplicate merge/provenance, original-brand display, and provider-page fallback in the deployed app before calling an integration complete.
