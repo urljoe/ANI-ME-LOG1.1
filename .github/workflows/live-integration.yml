@@ -4,17 +4,17 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'source-engine.js'
+      - 'src/sources/**'
+      - 'test/**'
       - 'tests/**'
       - '.github/workflows/live-integration.yml'
   schedule:
     - cron: '23 7 * * 1'
   push:
-    branches:
-      - feature/live-integration-tests-v1-3
-      - main
+    branches: [main]
     paths:
-      - 'source-engine.js'
+      - 'src/sources/**'
+      - 'test/**'
       - 'tests/**'
       - '.github/workflows/live-integration.yml'
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Unit-test source engine
-        run: node --test tests/source-engine.test.cjs
+      - name: Unit-test source adapters
+        run: node --test test/sources/*.test.js
       - name: Probe live catalogue endpoints
         run: node tests/live-integration.mjs
