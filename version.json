@@ -1,0 +1,4 @@
+{
+  "version": "1.1.1",
+  "releaseNotes": "This update adds an in-app notice when a newer web app version is ready, with an option to apply it now or later."
+}
