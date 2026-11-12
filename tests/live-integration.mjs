@@ -8,11 +8,6 @@ const checks = [
     validate: data => Array.isArray(data?.data?.Page?.media) && data.data.Page.media.length > 0
   },
   {
-    name: 'Jikan REST',
-    url: 'https://api.jikan.moe/v4/top/anime?limit=1',
-    validate: data => Array.isArray(data?.data) && data.data.length > 0
-  },
-  {
     name: 'Kitsu JSON:API',
     url: 'https://kitsu.io/api/edge/anime?page%5Blimit%5D=1&sort=-userCount',
     validate: data => Array.isArray(data?.data) && data.data.length > 0
