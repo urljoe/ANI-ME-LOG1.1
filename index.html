@@ -658,7 +658,7 @@ function playEp(e,ep,audio){
 }
 
 /* Automatic failover is limited to media the native player can observe. */
-function tryNextSource(automatic=false){if(!PLAY)return;const current=PLAY,tried=[...new Set([...(current.tried||[]),current.url])];const next=(current.alts||[]).find(f=>{const u=f.video||f.link,t=typeOf(u);return !!u&&!tried.includes(u)&&(!automatic||t==='video'||t==='hls')});if(!next)return toast(automatic?'Playback failed; no other playable source is available for this episode and audio.':'No other source is available for this episode and audio.');const resolved=SourceEngine.resolveSource(next),url=resolved?.src||next.video||next.link;if(!url)return toast('That source has no usable playback page.');play(url,current.k,current.title,current.ep,{audio:current.audio,sourceName:next.src,sourceAttribution:resolved?.attribution||next.src,sourceFallback:resolved?.fallbackUrl||next.link,tried,note:(automatic?'The player reported a media error. ':'')+'Switched to '+next.src+' for the same episode and audio.'})}
+function tryNextSource(automatic=false){if(!PLAY)return;const current=PLAY,tried=[...new Set([...(current.tried||[]),current.url])];let resolved;const next=(current.alts||[]).find(f=>{const raw=f.video||f.link,candidate=SourceEngine.resolveSource(f),url=candidate?.src||raw,t=typeOf(url);if(!url||tried.includes(raw)||tried.includes(url)||automatic&&t!=='video'&&t!=='hls')return false;resolved=candidate;return true});if(!next)return toast(automatic?'Playback failed; no other playable source is available for this episode and audio.':'No other source is available for this episode and audio.');const url=resolved?.src||next.video||next.link;if(!url)return toast('That source has no usable playback page.');play(url,current.k,current.title,current.ep,{audio:current.audio,sourceName:next.src,sourceAttribution:resolved?.attribution||next.src,sourceFallback:resolved?.fallbackUrl||next.link,tried,note:(automatic?'The player reported a media error. ':'')+'Switched to '+next.src+' for the same episode and audio.'})}
 function failover(){if(!PLAY)return;recordPlaybackHealth('failed','Native player reported a media error');tryNextSource(true)}
 
 /* IndexedDB store for downloaded episodes */
@@ -897,7 +897,7 @@ document.addEventListener('click',async ev=>{
     let target;
     try{target=SourceEngine.resolve(p.id,u).src}catch(e){return toast(e.message)}
     if(a==='provider-tab'){window.open(target,'_blank','noopener,noreferrer');return;}
-    play(target,'provider:'+p.id,p.name,'',{externalProvider:true});return;
+    play(target,'provider:'+p.id,p.name,'',{externalProvider:true,sourceName:p.name,sourceAttribution:p.name});return;
   }
 
   if(a==='audio'){document.querySelector('#audio')?.remove();const e=entryFor(b.dataset.k);if(e)playEp(e,b.dataset.ep,b.dataset.a);return}
