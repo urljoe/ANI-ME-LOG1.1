@@ -245,6 +245,7 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 <footer>thewiltedpetals.blooms</footer>
 <div id="toast" role="status"></div>
 <script src="./src/sources/engine.js"></script>
+<script src="./src/sources/adapters/animeschedule-rss.js"></script>
 <script>
 const SourceEngine=window.AniMeSourceEngine;
 const K='animelog.v1',$=s=>document.querySelector(s);
@@ -405,9 +406,10 @@ async function fetchItems(s){
   }
   return all;
 }
+SourceEngine.registerAdapter(window.createAnimeScheduleRSSAdapter({fetchItems,parseText}));
 SourceEngine.registerAdapter({
   id:'configured-feed',
-  matches:source=>!source.providerId,
+  matches:source=>!source.providerId&&!source.adapterId,
   load:async source=>source.raw!=null?parseText(source.raw):await fetchItems(source)
 });
 async function load(s){
@@ -613,7 +615,13 @@ function playEp(e,ep,audio){
   if(!audio&&opts.length>1){showAudioPicker(e,key);return}
   if(!audio&&opts.length===1)audio=opts[0];
   const f=pickRecords(e,key,audio)[0];
-  if(f){markSeen(e.k,key);play(f.video||f.link,e.k,e.title,key,{audio:audio||'SUB'});return}
+  if(f){
+    const resolved=SourceEngine.resolveSource(f);
+    if(!resolved||!resolved.src)return toast('No playable link or original source page is available for this episode.');
+    markSeen(e.k,key);
+    play(resolved.src,e.k,e.title,key,{audio:audio||'SUB',sourceAttribution:resolved.attribution||f.src,sourceFallback:resolved.fallbackUrl||f.link});
+    return;
+  }
   return toast('No link for episode '+key+' from your sources.');
 }
 
@@ -986,8 +994,8 @@ const LEGACY=new Set(['https://api.jikan.moe/v4/top/anime','https://api.jikan.mo
       (Array.isArray(list)?list:[]).forEach(x=>{
         if(!x||!/^https?:\/\//i.test(x.url||''))return;
         const have=st.sources.find(s=>s.name===x.name);
-        if(have)Object.assign(have,{url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap});
-        else st.sources.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:x.name||new URL(x.url).hostname,url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap,items:[]});
+        if(have)Object.assign(have,{url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap,adapterId:x.adapterId||have.adapterId||''});
+        else st.sources.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:x.name||new URL(x.url).hostname,url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap,adapterId:x.adapterId||'',items:[]});
       });
     }
   }catch(e){}
