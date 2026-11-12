@@ -253,6 +253,11 @@ const K='animelog.v1',$=s=>document.querySelector(s);
 let st={sources:[],proxy:'',auto:true,watch:{},hist:[],seen:{},device:'auto'},view='home',prev='home',CUR='',q='',fsrc='',LIM=120,LIB={map:new Map(),list:[]},PLAY=null,DEV='win',HLSP=null,WSORT='asc',WLIST=false;
 try{Object.assign(st,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(st))}catch(e){toast('Browser storage is full, so this session won’t be cached.')}};
+st.health=st.health||{};
+function setHealth(name,kind,state,detail='',url=''){if(!name)return;st.health[name]=st.health[name]||{};st.health[name][kind]={state,detail,checkedAt:Date.now(),url};save()}
+function healthState(name,kind){return st.health[name]?.[kind]?.state||'unknown'}
+function playbackSourceName(){return PLAY?.sourceName||PLAY?.sourceAttribution||'Unknown source'}
+function recordPlaybackHealth(state,detail=''){if(!PLAY)return;setHealth(playbackSourceName(),'playback',state,detail,PLAY.url||'')}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safe=u=>/^(https?:\/\/|blob:)/i.test(u||'')?esc(u):'';
 const sleep=t=>new Promise(r=>setTimeout(r,t));
@@ -426,9 +431,19 @@ async function load(s){
     if(!s.items.length)s.error='Loaded, but no titles were found in this source.';
   }catch(e){
     s.status='error';
-    s.error=/Failed to fetch|HTTP|aborted|timeout|blocked|No answer/i.test(e.message)?'Blocked or unreachable'+(st.auto===false?'. Turn on auto proxy in Settings.':' (direct and proxy attempts failed).'):e.message;
+    s.error=/Failed to fetch|aborted|timeout|blocked|No answer/i.test(e.message)?'Could not verify from this browser; the request may be blocked, cross-origin, or timed out.':`Source returned an error: ${e.message}`;
   }
+  const provider=SourceEngine.getProvider(s.providerId),healthName=provider?provider.name:s.name;
+  const catalogState=s.status==='error'?(/Could not verify from this browser/i.test(s.error)?'unverified':/^Source returned an error: HTTP /i.test(s.error)?'degraded':'unverified'):s.error?'degraded':'reachable';
+  setHealth(healthName,'catalog',catalogState,s.error||((s.items||[]).length+' catalog entries'),s.url||'');
   save();render();
+}
+async function checkProviderPage(providerId){
+  const provider=SourceEngine.getProvider(providerId),url=st.providers[providerId];if(!provider||!url)return toast('Save this provider’s website address first.');
+  setHealth(provider.name,'page','checking','Requesting the provider home page.',url);render();
+  try{const text=await grab(url);if(!String(text||'').trim())throw new Error('The response was empty.');setHealth(provider.name,'page','reachable','The configured address returned a response. This does not confirm that a title page embeds or plays.',url);toast(provider.name+' responded. Playback is still unconfirmed.')}
+  catch(error){const reason=/cors|cross-origin|failed to fetch/i.test(error.message)?'Browser could not inspect this cross-origin page. That does not prove the provider is down.':String(error.message||'Page check failed.');setHealth(provider.name,'page','unverified',reason,url);toast(provider.name+' page could not be verified from this browser.')}
+  render();
 }
 async function runAll(list){
   const g={};list.forEach(s=>{let h='x';try{h=new URL(s.url).hostname}catch(e){}(g[h]=g[h]||[]).push(s)});
@@ -469,11 +484,11 @@ function loadHls(){
 }
 function attachHls(){
   const v=$('#pv');if(!v||!PLAY||!PLAY.e||PLAY.e.type!=='hls')return;
-  const src=PLAY.e.src;
+  const src=PLAY.e.src,playId=PLAY.id;
   if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=src;return}
   loadHls().then(H=>{
     if(!H.isSupported())return toast('This browser can’t play streaming video.');
-    const h=new H();h.on(H.Events.ERROR,(e,d)=>{if(d.fatal)toast('The stream failed to load. It may not allow other sites to play it.')});
+    const h=new H();h.on(H.Events.ERROR,(e,d)=>{if(d.fatal&&PLAY&&PLAY.id===playId){recordPlaybackHealth('failed','Fatal HLS playback error');tryNextSource(true)}});
     h.loadSource(src);h.attachMedia(v);
   }).catch(()=>toast('Couldn’t load the video library.'));
 }
@@ -481,9 +496,9 @@ function wview(){
   const p=PLAY,e=entryFor(p.k)||{k:p.k,title:p.title,from:[],tags:[],score:0};
   const epm=epsOf(e),have=[...epm.keys()].sort((a,b)=>num(a)-num(b)),sn=st.seen[p.k]||{eps:{}};
   const i=have.indexOf(String(p.ep)),pe=i>0?have[i-1]:'',ne=i>=0&&i<have.length-1?have[i+1]:'',x=p.e;
-  const rec=(e.from||[]).find(f=>(f.video||f.link)===p.url);
+  const rec=(e.from||[]).find(f=>(f.video||f.link)===p.url&&(!p.sourceName||f.src===p.sourceName));
   const audio=p.audio||(rec&&isDub(rec)?'DUB':'SUB');
-  const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline preload="metadata" controlslist="nodownload" onerror="failover()" ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`:`<iframe src="${safe(x.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${x.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`):`<p class="empty">${esc(p.msg)}</p>`;
+  const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline preload="metadata" controlslist="nodownload" onplaying="recordPlaybackHealth('confirmed','Native player started')" onerror="failover()" ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`:`<iframe src="${safe(x.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${x.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`):`<p class="empty">${esc(p.msg)}</p>`;
    const seekZones=x&&(x.type==='video'||x.type==='hls')?`<button type="button" class="seek-zone left" data-seek="left" aria-label="Double tap to rewind 10 seconds"><span>↶ 10s</span></button><button type="button" class="seek-zone right" data-seek="right" aria-label="Double tap to fast forward 10 seconds"><span>10s ↷</span></button><div id="seek-flash" class="seek-flash" aria-live="polite"></div>`:'';
   const top=Math.max(0,...have.map(num)),tot=Math.min(300,Math.max(e.total||0,top));const allN=new Set(have);for(let k=1;k<=tot;k++)allN.add(String(k));const full=[...allN].sort((a,b)=>num(a)-num(b));
   const order=WSORT==='desc'?[...full].reverse():full;
@@ -498,8 +513,8 @@ function wview(){
 <div class="vid ${FIT==='fill'?'fill':''}">${frame}${seekZones}</div>
 ${p.note?`<p class="note">${esc(p.note)}</p>`:''}
 ${x&&x.type==='page'?'<p class="note">Showing the provider website inside the boxed player. If it stays blank or refuses to load, use “Open source” to open it separately.</p>':''}
-<div class="vbar"><span class="pill amber">${esc(audio)}</span><span class="pill">${esc(rec?rec.src:(p.externalProvider?p.title:'Source'))}</span><span class="pill">${esc(qualityOf(e,p.url))}</span><span class="grow"></span><a class="btn sm" href="${safe(p.url)}" target="_blank" rel="noopener noreferrer">Open source ↗</a>${p.ep?`<button class="btn sm pri" data-act="dl" data-k="${esc(p.k)}" data-ep="${esc(p.ep)}">↓ Download episode</button>`:''}</div>
-${alts.length>1?`<details class="play-sources"><summary>${alts.length} playback sources for this episode</summary><div class="chips">${alts.map(f=>`<button class="chip ${(f.video||f.link)===p.url?'on':''}" data-act="srv" data-u="${esc(f.video||f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div></details>`:''}
+<div class="vbar"><span class="pill amber">${esc(audio)}</span><span class="pill">${esc(rec?rec.src:(p.sourceAttribution||p.title||'Source'))}</span><span class="pill">${esc(qualityOf(e,p.url))}</span><span class="grow"></span>${alts.some(f=>(f.video||f.link)!==p.url)?`<button class="btn sm pri" data-act="nextsource">Try next source</button>`:''}<a class="btn sm" href="${safe(p.url)}" target="_blank" rel="noopener noreferrer">Open source ↗</a>${p.ep?`<button class="btn sm pri" data-act="dl" data-k="${esc(p.k)}" data-ep="${esc(p.ep)}">↓ Download episode</button>`:''}</div>
+${alts.length>1?`<details class="play-sources"><summary>${alts.length} playback sources for this episode · ${esc(audio)}</summary><div class="chips">${alts.map(f=>`<button class="chip ${(f.video||f.link)===p.url&&f.src===p.sourceName?'on':''}" data-act="srv" data-u="${esc(f.video||f.link)}" data-source="${esc(f.src)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div></details>`:''}
 </div><aside><div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:12px"><b class="pl-h">Episodes</b><div class="row"><button class="btn sm" data-act="wlist">${WLIST?'Tiles':'List'}</button><button class="btn sm" data-act="wsort">${WSORT==='asc'?'Oldest first':'Newest first'}</button></div></div>
 ${full.length?(WLIST?`<div class="eprs">${order.map(rowb).join('')}</div>`:`<div class="eps">${order.map(tile).join('')}</div>`):'<p class="note">No episode numbers from your sources for this title.</p>'}</div>
 <div class="panel"><h3>For you</h3>${r.map(y=>`<button class="rec" data-open="${esc(y.k)}"><span class="rp">${y.image?`<img src="${safe(y.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</span><span><b>${esc(y.title)}</b><small>${y.total?y.total+' episodes':''}${y.total&&y.tags[0]?' · ':''}${esc(y.tags[0]||'')}</small></span></button>`).join('')||'<p class="note">Nothing to suggest yet.</p>'}</div></aside></div></div>`;
@@ -511,9 +526,11 @@ async function play(u,k,title,ep,extra){
   if(enteringWatch)history.pushState({animeLog:'watch'},'',location.href);
   const en=entryFor(k);
   if(en){st.hist=[snap(en),...st.hist.filter(h=>h.k!==en.k)].slice(0,100);save();CUR=k}
-  const e=embedFor(u);
-  const alts=((en&&en.from)||[]).filter(f=>(f.video||f.link)&&(!ep||String(f.ep)===String(ep))).slice(0,12);
-  PLAY={k,title,ep,url:u,e,alts,...(extra||{}),msg:'This link can’t be played inside the app. Use “Open on its own site”.'};
+  const e=embedFor(u),opts=extra||{};
+  const matched=(en&&en.from||[]).find(f=>(f.video||f.link)===u&&(!opts.sourceName||f.src===opts.sourceName));
+  const audio=opts.audio||(matched?(isDub(matched)?'DUB':'SUB'):'');
+  const alts=((en&&en.from)||[]).filter(f=>(f.video||f.link)&&(!ep||String(f.ep)===String(ep))&&(!audio||isDub(f)===(audio==='DUB'))&&enabledSrc(f.src)).slice(0,20);
+  PLAY={id:(PLAY?.id||0)+1,k,title,ep,url:u,e,alts,sourceName:opts.sourceName||matched?.src||opts.sourceAttribution||'',audio,...opts,msg:'This link can’t be played inside the app. Use “Open source” to continue on the provider site.'};
   if(view!=='watch'&&view!=='title')prev=view;
   view='watch';draw();scrollTo(0,0);
   if(e&&e.type==='rumble'){
@@ -568,7 +585,7 @@ ${w?`<div class="chips" style="margin:14px 0 0">${['Plan to watch','Watching','C
 <p class="note" style="margin-top:12px">${sn.last?`Last watched · Episode ${esc(sn.last.ep)} · ${ago(sn.last.at)} <button class="chip" data-act="clrp" data-k="${esc(e.k)}">Clear progress</button>`:'Nothing watched yet.'}</p></div></div>
 ${list.length?`<h3 style="margin-bottom:14px">Episodes</h3><div class="eps">${list.map(x=>{const has=epm.has(x),seen=sn.eps[x],f=has?epm.get(x):[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');
 return`<button class="ep ${seen?'seen':''} ${has?'':'via'}" ${has?`data-act="ep" data-ep="${esc(x)}"`:'disabled'} title="${esc(has?f.map(y=>y.src).join(', '):'Not available from your sources')}">${esc(x)}<small>${esc(lb||(has?'':'no link'))}</small></button>`}).join('')}</div>`:''}
-${sourceRecords.length?`<h3 style="margin-bottom:10px">Provider links and episodes</h3><p class="note">All matching provider records are kept here. Episode links stay grouped with their episode numbers.</p><ul class="fl">${sourceRecords.map(f=>{const u=f.video||f.link;return`<li><div><b>${esc(f.src)}${f.ep?' · Episode '+esc(f.ep):' · Catalogue'}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}${f.video?' · Direct media':''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(u)}" data-k="${esc(e.k)}" ${f.ep?`data-ep="${esc(f.ep)}"`:''}>${f.ep||f.video?'Play':'Open source'}</button>${f.link&&f.link!==u?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Provider</a>`:`<a class="btn sm" href="${safe(u)}" target="_blank" rel="noopener noreferrer">Open</a>`}</li>`}).join('')}</ul>`:''}
+${sourceRecords.length?`<h3 style="margin-bottom:10px">Provider links and episodes</h3><p class="note">All matching provider records are kept here. Episode links stay grouped with their episode numbers.</p><ul class="fl">${sourceRecords.map(f=>{const u=f.video||f.link;return`<li><div><b>${esc(f.src)}${f.ep?' · Episode '+esc(f.ep):' · Catalogue'}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}${f.video?' · Direct media':''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(u)}" data-k="${esc(e.k)}" data-source="${esc(f.src)}" ${f.ep?`data-ep="${esc(f.ep)}"`:''}>${f.ep||f.video?'Play':'Open source'}</button>${f.link&&f.link!==u?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Provider</a>`:`<a class="btn sm" href="${safe(u)}" target="_blank" rel="noopener noreferrer">Open</a>`}</li>`}).join('')}</ul>`:''}
 ${r.length?rail('You might also like','library',r):''}</div>`;
 }
 
@@ -634,20 +651,15 @@ function playEp(e,ep,audio){
     const resolved=SourceEngine.resolveSource(f);
     if(!resolved||!resolved.src)return toast('No playable link or original source page is available for this episode.');
     markSeen(e.k,key);
-    play(resolved.src,e.k,e.title,key,{audio:audio||'SUB',sourceAttribution:resolved.attribution||f.src,sourceFallback:resolved.fallbackUrl||f.link});
+    play(resolved.src,e.k,e.title,key,{audio:audio||'SUB',sourceName:f.src,sourceAttribution:resolved.attribution||f.src,sourceFallback:resolved.fallbackUrl||f.link});
     return;
   }
   return toast('No link for episode '+key+' from your sources.');
 }
 
-/* Failover: if a link fails, move to the next link for the same episode and say so on screen */
-function failover(){
-  if(!PLAY)return;
-  const tried=[...(PLAY.tried||[]),PLAY.url];
-  const next=(PLAY.alts||[]).find(f=>{const u=f.video||f.link;return !!u&&!tried.includes(u)&&typeOf(u)==='video'});
-  if(!next)return toast('No other working link for this episode.');
-  play(next.video||next.link,PLAY.k,PLAY.title,PLAY.ep,{audio:PLAY.audio,tried,note:'The previous link failed, so the app switched to '+next.src+' for this episode.'});
-}
+/* Automatic failover is limited to media the native player can observe. */
+function tryNextSource(automatic=false){if(!PLAY)return;const current=PLAY,tried=[...new Set([...(current.tried||[]),current.url])];const next=(current.alts||[]).find(f=>{const u=f.video||f.link,t=typeOf(u);return !!u&&!tried.includes(u)&&(!automatic||t==='video'||t==='hls')});if(!next)return toast(automatic?'Playback failed; no other playable source is available for this episode and audio.':'No other source is available for this episode and audio.');const resolved=SourceEngine.resolveSource(next),url=resolved?.src||next.video||next.link;if(!url)return toast('That source has no usable playback page.');play(url,current.k,current.title,current.ep,{audio:current.audio,sourceName:next.src,sourceAttribution:resolved?.attribution||next.src,sourceFallback:resolved?.fallbackUrl||next.link,tried,note:(automatic?'The player reported a media error. ':'')+'Switched to '+next.src+' for the same episode and audio.'})}
+function failover(){if(!PLAY)return;recordPlaybackHealth('failed','Native player reported a media error');tryNextSource(true)}
 
 /* IndexedDB store for downloaded episodes */
 const DBN='ani-me-downloads';
@@ -748,7 +760,8 @@ function srcView(){
 
   const providerCards=PROVIDERS.map(p=>{
     const url=st.providers[p.id]||'';
-    return `<div class="provider-card"><div><b>${esc(p.name)}</b><small>Individual provider · Website shortcut · ${url?'Address saved on this device':'Add the provider’s website address'}</small><input name="provider:${p.id}" type="url" inputmode="url" placeholder="https://provider.example" value="${esc(url)}" aria-label="${esc(p.name)} website address"></div><div class="provider-actions"><button class="btn sm pri" type="button" data-act="provider-open" data-provider="${p.id}" ${url?'':'disabled'}>Open in player</button><button class="btn sm" type="button" data-act="provider-tab" data-provider="${p.id}" ${url?'':'disabled'}>Open site</button></div></div>`;
+    const catalog=healthState(p.name,'catalog'),page=healthState(p.name,'page'),playback=healthState(p.name,'playback');
+    return `<div class="provider-card"><div><b>${esc(p.name)}</b><small>Individual provider · Website shortcut · ${url?'Address saved on this device':'Add the provider’s website address'}</small><small>Catalog: ${esc(catalog)} · Page: ${esc(page)} · Playback: ${esc(playback)}</small><input name="provider:${p.id}" type="url" inputmode="url" placeholder="https://provider.example" value="${esc(url)}" aria-label="${esc(p.name)} website address"></div><div class="provider-actions"><button class="btn sm" type="button" data-act="provider-check-page" data-provider="${p.id}" ${url?'':'disabled'}>Check page</button><button class="btn sm pri" type="button" data-act="provider-open" data-provider="${p.id}" ${url?'':'disabled'}>Open in player</button><button class="btn sm" type="button" data-act="provider-tab" data-provider="${p.id}" ${url?'':'disabled'}>Open site</button></div></div>`;
   }).join('');
 
   const adapterCount=SourceEngine.listAdapters().length;
@@ -778,7 +791,7 @@ function srcView(){
 <form id="dm" class="row" style="margin-top:6px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form>
 <form id="yt" class="row" style="margin-top:10px"><input name="n" style="flex:1;min-width:120px" placeholder="Channel name (optional)" aria-label="YouTube channel name"><input name="c" style="flex:2;min-width:200px" placeholder="YouTube channel ID (starts with UC) or feed link" aria-label="YouTube channel ID"><button class="btn" type="submit">Add YouTube</button></form></section>
 <section class="panel"><h3>Add a source</h3><form id="add" class="stack"><input name="name" placeholder="Name (optional)" aria-label="Source name"><input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address"><textarea name="raw" rows="3" placeholder="…or paste JSON / RSS text here" aria-label="Pasted data"></textarea><div class="row"><button class="btn pri" type="submit">Add source</button><label class="btn">Import file<input id="file" type="file" accept=".json,.xml,.rss,.txt" hidden></label><button class="btn" type="button" data-act="export">Export sources</button></div></form></section>
-<section class="panel"><h3>Streaming provider shortcuts</h3><p class="note">Each provider stays individually configurable. The central engine manages these as website shortcuts today; automatic catalogue or stream extraction is enabled only when a provider has a supported adapter.</p><div class="providers">${providerCards}</div><div class="provider-note">These are website shortcuts, not automatic catalogue or stream extractors. A provider must permit embedding for its pages to play inside the app. No DRM, login, paywall, or access-control bypass is attempted.</div><div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="providers-save">Save provider addresses</button></div></section>
+<section class="panel"><h3>Streaming provider shortcuts</h3><p class="note">Each provider stays individually configurable. Check page tests whether the configured home address responds through the app’s current network route. Catalog status comes from source loading. Playback is confirmed only when the native video player starts; provider embeds may remain unobservable.</p><div class="providers">${providerCards}</div><div class="provider-note">A page response does not prove that a specific title plays. Provider pages remain in control of embedding and playback. No DRM, login, paywall, or access-control bypass is attempted.</div><div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="providers-save">Save provider addresses</button></div></section>
 <section class="panel"><h3>Your sources (${st.sources.length})</h3>${bad?`<div class="row" style="margin-bottom:10px"><button class="btn sm" data-act="dropbad">Remove ${bad} failed source${bad>1?'s':''}</button></div>`:''}
 ${st.sources.map(s=>`<div class="src"><div><b>${esc(s.name)}</b><small>${esc(s.url||'Pasted or imported data')}</small><small>${esc(s.adapterLabel||SourceEngine.adapterFor(s).label)} adapter</small><small class="${s.status==='error'||s.error?'err':''}">${s.status==='loading'?'Loading…':s.error||`${(s.items||[]).length} items`}</small></div>${s.url?`<button class="btn sm" data-act="reload" data-id="${s.id}">Reload</button>`:''}<button class="btn sm" data-act="del" data-id="${s.id}">Remove</button></div>`).join('')||'<p class="empty">No sources yet.</p>'}</section>
 <section class="panel"><h3>Watchlist backup</h3><p class="note">Export your watchlist and progress, or import one. Imports accept this app’s file, a JSON list of titles, or a text file with one title per line.</p><div class="row"><button class="btn" data-act="expwl">Export watchlist</button><label class="btn">Import watchlist<input id="wlfile" type="file" accept=".json,.txt,.csv" hidden></label></div></section>
@@ -877,6 +890,7 @@ document.addEventListener('click',async ev=>{
     }catch(e){return toast(e.message)}
     save();toast('Provider addresses saved on this device.');render();return;
   }
+  if(a==='provider-check-page'){await checkProviderPage(b.dataset.provider);return}
   if(a==='provider-open'||a==='provider-tab'){
     const p=PROVIDERS.find(x=>x.id===b.dataset.provider),u=p&&st.providers[p.id];
     if(!p||!u)return toast('Add a valid website address and save it first.');
@@ -904,8 +918,9 @@ document.addEventListener('click',async ev=>{
   if(a==='ep'){const e=entryFor(CUR);if(e)playEp(e,b.dataset.ep)}
   if(a==='clrp'){delete st.seen[b.dataset.k];save();draw()}
   if(a==='playbest'){const e=entryFor(b.dataset.k);if(!e)return;const h=[...epsOf(e).keys()].sort((x,y)=>num(y)-num(x))[0];if(h)playEp(e,h);else openTitle(e.k)}
-  if(a==='pl'){const e=entryFor(b.dataset.k);if(b.dataset.ep)markSeen(b.dataset.k,b.dataset.ep);play(b.dataset.u,b.dataset.k,e?e.title:'',b.dataset.ep||''); }
-  if(a==='srv')play(b.dataset.u,PLAY.k,PLAY.title,PLAY.ep);
+  if(a==='pl'){const e=entryFor(b.dataset.k);if(b.dataset.ep)markSeen(b.dataset.k,b.dataset.ep);play(b.dataset.u,b.dataset.k,e?e.title:'',b.dataset.ep||'',{sourceName:b.dataset.source||''}); }
+  if(a==='srv')play(b.dataset.u,PLAY.k,PLAY.title,PLAY.ep,{audio:PLAY.audio,sourceName:b.dataset.source||''});
+  if(a==='nextsource')tryNextSource(false);
   if(a==='share'){try{await navigator.clipboard.writeText(location.href.split('#')[0]);toast('Link copied.')}catch(e){toast('Copy the address from your browser.')}}
   if(a==='wsort'){WSORT=WSORT==='asc'?'desc':'asc';draw()}
   if(a==='wlist'){WLIST=!WLIST;draw()}
