@@ -1,6 +1,12 @@
 name: Catalogue live integration checks
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'source-engine.js'
+      - 'tests/**'
+      - '.github/workflows/live-integration.yml'
   schedule:
     - cron: '23 7 * * 1'
   push:
