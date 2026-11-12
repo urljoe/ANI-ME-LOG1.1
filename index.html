@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#140c0e">
+<meta name="app-version" content="1.1.1">
 <meta name="description" content="Ani-Me Log — your personal anime library and video player.">
 <link rel="manifest" href="manifest.webmanifest">
 <title>Ani-Me Log</title>
@@ -212,6 +213,8 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 .tbl td{padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
 .schema{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;overflow-x:auto;color:#bfe9dc;font:13px/1.6 Consolas,monospace;margin:10px 0 0}
 #toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--amber);color:var(--ink);padding:10px 18px;border-radius:12px;font-weight:600;display:none;z-index:99;box-shadow:0 10px 30px #0008}
+#app-update-banner{position:fixed;left:16px;right:16px;bottom:88px;z-index:80;max-width:720px;margin:auto;padding:14px 16px;border:1px solid var(--mint);border-radius:16px;background:var(--panel);box-shadow:0 14px 40px #000b;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#app-update-banner[hidden]{display:none!important}#app-update-copy{flex:1;min-width:220px;margin:0}
 .sheet{position:fixed;inset:0;background:#05090ccc;display:grid;place-items:center;z-index:50;padding:20px}
 .sheet-box{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:26px;max-width:460px;width:100%}
 .sheet-box small{color:var(--mint);text-transform:uppercase;letter-spacing:.14em;font-size:11px}
@@ -227,7 +230,7 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 <body>
 <nav class="top">
   <div class="brand"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C5 6 3 13 8 21c5-2 9-9 4-19z" fill="#6fd3b0"/><path d="M12 2c3 6 1 13-4 19" fill="none" stroke="#f2b35c" stroke-width="1.2"/></svg><div>Ani-Me Log<small>beta</small></div></div>
-  <div class="tools"><input class="search" id="q" type="search" placeholder="Find a title" aria-label="Search titles"><button class="btn sm" data-act="refresh">Sync</button></div>
+  <div class="tools"><input class="search" id="q" type="search" placeholder="Find a title" aria-label="Search titles"><button class="btn sm" data-act="refresh">Sync sources</button></div>
 </nav>
 <div class="ptitle"><h1 id="ttl">Home</h1><p id="sub"></p></div>
 <section id="view"></section>
@@ -244,6 +247,7 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 </nav>
 <footer>thewiltedpetals.blooms</footer>
 <div id="toast" role="status"></div>
+<aside id="app-update-banner" role="status" aria-live="polite" hidden><p id="app-update-copy"></p><button class="btn pri sm" data-act="app-update">Update now</button><button class="btn sm" data-act="app-update-later">Later</button></aside>
 <script>
 const K='animelog.v1',$=s=>document.querySelector(s);
 let st={sources:[],proxy:'',auto:true,watch:{},hist:[],seen:{},device:'auto'},view='home',prev='home',CUR='',q='',fsrc='',LIM=120,LIB={map:new Map(),list:[]},PLAY=null,DEV='win',HLSP=null,WSORT='asc',WLIST=false;
@@ -764,6 +768,7 @@ function srcView(){
 <div class="set-foot"><div class="route">${route}</div><button class="btn pri" type="submit">Confirm settings</button></div>
 </form>
 <div class="two">
+<section class="panel"><h3>App updates</h3><p class="note" id="app-update-status">Installed version 1.1.1. Updates are checked automatically when you open the app.</p><button class="btn sm" data-act="app-check">Check for updates</button></section>
 <section class="panel"><h3>Display</h3><p class="note">Auto picks the layout for your device. Apps built around this page can set it with ?device=win, ?device=mobile or ?device=tv.</p>
 <div class="chips" style="margin:0">${[['auto','Auto'],['win','Windows'],['mobile','Mobile'],['tv','TV']].map(([v,l])=>`<button class="chip ${(st.device||'auto')===v?'on':''}" data-act="dev" data-d="${v}">${l}${v==='auto'?' ('+DEV+')':''}</button>`).join('')}</div></section>
 <section class="panel"><h3>Quick add</h3><p class="note">Open anime catalogues. Each one loads several pages, so you get hundreds of titles.</p><div class="chips" style="margin:0 0 10px">${PRESETS.map((p,i)=>`<button class="chip" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div>
@@ -895,6 +900,9 @@ document.addEventListener('click',async ev=>{
   if(a==='wsort'){WSORT=WSORT==='asc'?'desc':'asc';draw()}
   if(a==='wlist'){WLIST=!WLIST;draw()}
   if(a==='clrh'){st.hist=[];save();draw()}
+  if(a==='app-check'){await checkAppVersion(true);return}
+  if(a==='app-update'){await applyAppUpdate();return}
+  if(a==='app-update-later'){dismissAppUpdate();return}
   if(a==='refresh'){if(!st.sources.length)return toast('Add a source first.');await runAll(st.sources.filter(s=>s.url));toast('Sources refreshed.')}
   if(a==='reload'&&s)load(s);
   if(a==='del'&&s){st.sources=st.sources.filter(x=>x!==s);if(fsrc===s.name)fsrc='';save();draw()}
@@ -1008,9 +1016,68 @@ const LEGACY=new Set(['https://api.jikan.moe/v4/top/anime','https://api.jikan.mo
   runAll(st.sources.filter(s=>s.url&&!(s.items||[]).length));
 })();
 loadDL();
-if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
-  addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+const APP_VERSION=document.querySelector('meta[name="app-version"]')?.content||'0.0.0';
+let APP_UPDATE_REG=null,APP_UPDATE_INFO=null,APP_UPDATE_REQUESTED=false,APP_RELOADING=false,APP_UPDATE_DISMISSED='';
+function compareAppVersions(a,b){
+  const pa=String(a).split(/[.+-]/).map(x=>/^\\d+$/.test(x)?Number(x):x),pb=String(b).split(/[.+-]/).map(x=>/^\\d+$/.test(x)?Number(x):x);
+  for(let i=0;i<Math.max(pa.length,pb.length);i++){const x=pa[i]??0,y=pb[i]??0;if(x===y)continue;if(typeof x===typeof y)return x>y?1:-1;return typeof x==='number'?1:-1}return 0;
 }
+function updateStatus(message){const node=$('#app-update-status');if(node)node.textContent=message}
+function showAppUpdate(info,force=false){
+  if(!info||!info.version)return;
+  APP_UPDATE_INFO=info;
+  if(!force&&APP_UPDATE_DISMISSED===info.version)return;
+  const copy=$('#app-update-copy'),banner=$('#app-update-banner');
+  if(copy)copy.textContent='Ani-Me Log '+info.version+' is ready. '+(info.releaseNotes||'Reload the app to get the latest changes.');
+  if(banner)banner.hidden=false;
+  updateStatus('Version '+info.version+' is available to update to.');
+}
+function dismissAppUpdate(){APP_UPDATE_DISMISSED=APP_UPDATE_INFO?.version||'';const banner=$('#app-update-banner');if(banner)banner.hidden=true}
+async function checkAppVersion(manual=false){
+  if(manual)updateStatus('Checking for updates…');
+  try{
+    const response=await fetch('./version.json?check='+Date.now(),{cache:'no-store'});
+    if(!response.ok)throw new Error('Version check failed');
+    const info=await response.json();
+    if(info.version&&compareAppVersions(info.version,APP_VERSION)>0)showAppUpdate(info,manual);
+    else if(manual)updateStatus('Ani-Me Log is up to date (version '+APP_VERSION+').');
+    return info;
+  }catch(e){if(manual)updateStatus('Could not check for app updates while offline.');return null}
+}
+async function applyAppUpdate(){
+  APP_UPDATE_REQUESTED=true;
+  try{
+    if(APP_UPDATE_REG){
+      if(APP_UPDATE_REG.waiting){APP_UPDATE_REG.waiting.postMessage({type:'ACTIVATE_UPDATE'});return}
+      await APP_UPDATE_REG.update();
+      if(APP_UPDATE_REG.waiting){APP_UPDATE_REG.waiting.postMessage({type:'ACTIVATE_UPDATE'});return}
+    }
+  }catch(e){}
+  location.reload();
+}
+function startAppUpdates(){
+  checkAppVersion(false);
+  setInterval(()=>checkAppVersion(false),5*60*1000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkAppVersion(false)});
+  if(!('serviceWorker'in navigator)||!/^https?:$/.test(location.protocol))return;
+  const hadController=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(APP_UPDATE_REQUESTED&&!APP_RELOADING){APP_RELOADING=true;location.reload()}});
+  navigator.serviceWorker.register('./sw.js').then(reg=>{
+    APP_UPDATE_REG=reg;
+    const showWaiting=async()=>{
+      if(!hadController||!reg.waiting)return;
+      const info=await checkAppVersion(false);
+      showAppUpdate(info||{version:'new',releaseNotes:'A new app update is ready. Refresh to apply it.'},true);
+    };
+    if(reg.waiting)showWaiting();
+    reg.addEventListener('updatefound',()=>{
+      const worker=reg.installing;if(!worker)return;
+      worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&hadController)showWaiting()});
+    });
+    reg.update().then(showWaiting).catch(()=>{});
+  }).catch(()=>{});
+}
+startAppUpdates();
 </script>
 </body>
 </html>
