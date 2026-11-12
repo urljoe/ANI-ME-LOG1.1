@@ -153,6 +153,7 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 .seek-zone.left{left:0;justify-content:flex-start;padding-left:clamp(12px,4vw,42px)}
 .seek-zone.right{right:0;justify-content:flex-end;padding-right:clamp(12px,4vw,42px)}
 .seek-zone span{display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:999px;background:#071015b8;border:1px solid #ffffff35;font:700 13px var(--body);opacity:0;transform:scale(.94);transition:opacity .12s,transform .12s;pointer-events:none}
+.seek-zone:hover span,.seek-zone:focus-visible span,.seek-zone:active span{opacity:1;transform:scale(1)}
 .seek-flash{position:absolute;top:38%;z-index:4;left:50%;transform:translate(-50%,-50%);padding:10px 16px;border-radius:999px;background:#071015d9;border:1px solid #ffffff40;color:#fff;font-weight:700;opacity:0;pointer-events:none;transition:opacity .15s}
 .seek-flash.show{opacity:1}
 .vid .empty{border:0;display:grid;place-items:center;height:100%;margin:0}
@@ -499,7 +500,7 @@ function wview(){
   const rec=(e.from||[]).find(f=>(f.video||f.link)===p.url&&(!p.sourceName||f.src===p.sourceName));
   const audio=p.audio||(rec&&isDub(rec)?'DUB':'SUB');
   const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline preload="metadata" controlslist="nodownload" onplaying="recordPlaybackHealth('confirmed','Native player started')" onerror="failover()" ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`:`<iframe src="${safe(x.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${x.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`):`<p class="empty">${esc(p.msg)}</p>`;
-   const seekZones=x&&(x.type==='video'||x.type==='hls')?`<button type="button" class="seek-zone left" data-seek="left" aria-label="Double tap to rewind 10 seconds"><span>↶ 10s</span></button><button type="button" class="seek-zone right" data-seek="right" aria-label="Double tap to fast forward 10 seconds"><span>10s ↷</span></button><div id="seek-flash" class="seek-flash" aria-live="polite"></div>`:'';
+   const seekZones=x&&(x.type==='video'||x.type==='hls')?`<button type="button" class="seek-zone left" data-seek="left" aria-label="Tap to rewind 10 seconds"><span>↶ 10s</span></button><button type="button" class="seek-zone right" data-seek="right" aria-label="Tap to skip forward 10 seconds"><span>10s ↷</span></button><div id="seek-flash" class="seek-flash" aria-live="polite"></div>`:'';
   const top=Math.max(0,...have.map(num)),tot=Math.min(300,Math.max(e.total||0,top));const allN=new Set(have);for(let k=1;k<=tot;k++)allN.add(String(k));const full=[...allN].sort((a,b)=>num(a)-num(b));
   const order=WSORT==='desc'?[...full].reverse():full;
   const cls=ep=>`${String(p.ep)===ep?'cur':''} ${sn.eps[ep]?'seen':''}`;
@@ -856,20 +857,16 @@ function importWL(txt){
   save();draw();toast(n+' added to your watchlist.');
 }
 
-/* Double-tap / double-click seeking for native video playback. Embedded provider pages remain provider-controlled. */
-const SEEK_TAPS={left:0,right:0};
+/* Each tap seeks ten seconds on native video; provider-controlled embeds handle their own controls. */
 document.addEventListener('pointerup',ev=>{
   const zone=ev.target.closest('.seek-zone');
   if(!zone||!PLAY||!PLAY.e||!['video','hls'].includes(PLAY.e.type))return;
-  const side=zone.dataset.seek,now=Date.now(),last=SEEK_TAPS[side]||0;
-  if(now-last>360){SEEK_TAPS[side]=now;return}
-  SEEK_TAPS[side]=0;
   const v=$('#pv');if(!v)return;
-  const delta=side==='left'?-10:10;
+  const side=zone.dataset.seek,delta=side==='left'?-10:10;
   const end=Number.isFinite(v.duration)?v.duration:Infinity;
   v.currentTime=Math.min(end,Math.max(0,(v.currentTime||0)+delta));
   const flash=$('#seek-flash');
-  if(flash){flash.textContent=side==='left'?'↶ 10 seconds':'10 seconds ↷';flash.classList.add('show');clearTimeout(flash._hideTimer);flash._hideTimer=setTimeout(()=>flash.classList.remove('show'),650)}
+  if(flash){flash.textContent=side==='left'?'−10 seconds ↶':'+10 seconds ↷';flash.classList.add('show');clearTimeout(flash._hideTimer);flash._hideTimer=setTimeout(()=>flash.classList.remove('show'),650)}
 });
 /* events */
 document.addEventListener('click',async ev=>{
