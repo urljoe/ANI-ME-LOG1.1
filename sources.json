@@ -1,61 +1,5 @@
 [
   {
-    "name": "AniList · Trending",
-    "url": "https://graphql.anilist.co",
-    "body": {
-      "query": "query{Page(page:__PAGE__,perPage:50){media(type:ANIME,sort:TRENDING_DESC){title{romaji english}coverImage{large}siteUrl description(asHtml:false) genres averageScore episodes}}}"
-    },
-    "pages": 4
-  },
-  {
-    "name": "AniList · Airing now",
-    "url": "https://graphql.anilist.co",
-    "body": {
-      "query": "query{Page(page:__PAGE__,perPage:50){media(type:ANIME,status:RELEASING,sort:POPULARITY_DESC){title{romaji english}coverImage{large}siteUrl description(asHtml:false) genres averageScore episodes}}}"
-    },
-    "pages": 3
-  },
-  {
-    "name": "AniList · All-time popular",
-    "url": "https://graphql.anilist.co",
-    "body": {
-      "query": "query{Page(page:__PAGE__,perPage:50){media(type:ANIME,sort:POPULARITY_DESC){title{romaji english}coverImage{large}siteUrl description(asHtml:false) genres averageScore episodes}}}"
-    },
-    "pages": 6
-  },
-  {
-    "name": "AniList · Top rated",
-    "url": "https://graphql.anilist.co",
-    "body": {
-      "query": "query{Page(page:__PAGE__,perPage:50){media(type:ANIME,sort:SCORE_DESC){title{romaji english}coverImage{large}siteUrl description(asHtml:false) genres averageScore episodes}}}"
-    },
-    "pages": 4
-  },
-  {
-    "name": "Jikan · Top anime",
-    "url": "https://api.jikan.moe/v4/top/anime?page=__PAGE__",
-    "pages": 4,
-    "gap": 1000
-  },
-  {
-    "name": "Jikan · Airing now",
-    "url": "https://api.jikan.moe/v4/seasons/now?page=__PAGE__",
-    "pages": 3,
-    "gap": 1000
-  },
-  {
-    "name": "Kitsu · Most popular",
-    "url": "https://kitsu.io/api/edge/anime?sort=-userCount&page[limit]=20&page[offset]=__OFFSET__",
-    "pages": 5,
-    "size": 20
-  },
-  {
-    "name": "Kitsu · Airing now",
-    "url": "https://kitsu.io/api/edge/anime?filter[status]=current&sort=-userCount&page[limit]=20&page[offset]=__OFFSET__",
-    "pages": 3,
-    "size": 20
-  },
-  {
     "name": "AnimeSchedule · Sub",
     "url": "https://animeschedule.net/subrss.xml"
   },
@@ -66,14 +10,5 @@
   {
     "name": "AnimeSchedule · Raw",
     "url": "https://animeschedule.net/jpnrss.xml"
-  },
-  {
-    "name": "Internet Archive · Animation",
-    "url": "https://archive.org/advancedsearch.php?q=collection%3Aanimationandcartoons&fl%5B%5D=identifier&fl%5B%5D=title&sort%5B%5D=downloads+desc&rows=100&page=__PAGE__&output=json",
-    "pages": 3
-  },
-  {
-    "name": "Donghua Zone",
-    "url": "https://www.donghuazone.com/"
   }
 ]

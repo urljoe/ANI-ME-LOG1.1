@@ -1,13 +1,17 @@
 {
   "name": "ani-me-log-wrapper",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Universal Capacitor wrapper for Ani-Me Log",
+  "description": "Ani-Me Log web player and Capacitor wrapper with configurable provider shortcuts",
   "scripts": {
     "android": "cap open android",
     "ios": "cap open ios",
     "sync": "cap sync"
   },
-  "dependencies": { "@capacitor/core": "^7.4.0" },
-  "devDependencies": { "@capacitor/cli": "^7.4.0" }
+  "dependencies": {
+    "@capacitor/core": "^7.4.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.0"
+  }
 }

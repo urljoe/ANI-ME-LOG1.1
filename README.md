@@ -1,59 +1,22 @@
-# Ani-Me Log — Universal Web Wrapper
+# Ani-Me Log
 
-A no-build-step anime library and player, packaged as an installable PWA and prepared for native Android/iOS wrapping with Capacitor.
+Ani-Me Log is a browser-first anime library and player UI with a Capacitor wrapper for Android.
 
-## Included
+## Included in this build
+- Existing title library, watchlist, episode progress, download storage, schedule and source settings.
+- Boxed 16:9 player with native video, HLS.js playback, supported iframe embeds, episode navigation and provider failover for direct video files.
+- Seven configurable external provider shortcuts: AniKoto, AnimePahe, ReAnime, DonghuaZone, DonghuaNation, AnimeKhor and DonghuaStream.
+- Provider addresses are saved locally in the current browser/app profile. The same app code works on the website and in the Capacitor APK.
+- “Open in player” attempts to display a provider website inside the boxed player. Some sites block iframe/WebView embedding; “Open site” is the fallback.
 
-- Original Ani-Me Log catalogue, sources, watchlist, history, episode progress and settings from `files8.1.zip`.
-- Existing Ani-Me Log icon artwork, restored from the earlier project archive.
-- PWA manifest, standalone/fullscreen display hints and service worker app-shell caching.
-- Browser history/back handling suitable for wrapped Android back navigation.
-- Native HTML5 video playback for direct MP4/WebM/OGG streams and HLS playback where supported (HLS.js is loaded when required).
-- Embedded providers remain embedded when they do not expose a direct media URL. Provider branding/watermarks inside their own player are not removed. The app does not add badges or overlays on top of the video.
-- Watchlist and progress continue to persist using the existing local storage implementation.
+## Important integration boundary
+The seven providers are configured as website shortcuts only. They are not advertised as automatic catalogue feeds or direct-stream extractors because their public API/feed availability and embedding permissions have not been established. The app does not bypass DRM, login requirements, paywalls, or site access controls. To add real title/episode sync, use a provider-supported public API/feed or an authorized integration endpoint.
 
-## Run as a website / install as PWA
+## Website and APK
+Deploy the web app as usual. The Android app wraps the same `index.html` using Capacitor. Provider addresses and watch progress are stored locally on each installation/browser profile; they do not automatically sync between devices without a backend account/sync service.
 
-Serve this folder over HTTPS (or localhost for development). Open the site in a supported browser and choose **Install app** / **Add to Home Screen**. Service workers and PWA installation do not work reliably from `file://` or plain HTTP on a public host.
-
-## Build a native Android or iOS wrapper
-
-Install Node.js (LTS), then from this folder:
-
-```sh
-npm install
-npx cap add android
-npx cap add ios
-npx cap sync
-npm run android
-# or: npm run ios
-```
-
-Open the generated native project in Android Studio or Xcode and build/sign it there. iOS builds require macOS and Xcode. Native platform folders are generated locally by Capacitor and are not included in this source ZIP.
-
-## Offline limitations
-
-The app shell, icon, manifest and source-list configuration are cached for offline startup. Previously saved watchlist/history/progress remain in browser storage. Live catalogues, remote artwork, external feeds, and third-party video streams still require connectivity unless their provider independently supports offline playback. This wrapper does not download or bypass protected streams.
-
-## Playback notes
-
-Direct media URLs ending in `.mp4`, `.webm`, `.ogg` or `.m3u8` use the app's plain video surface and standard browser controls. YouTube, Dailymotion, Archive.org, Rumble and ordinary web pages continue to use their provider/page embed paths as appropriate. A site that blocks embedding or direct access must be opened at its original source.
-
-## Changelog
-
-- Catalogue merger: titles from different providers are grouped by canonical and alternate names (English, romaji, synonyms), and every provider record is kept.
-- Title pages list each provider link with its episode number. Direct media URLs (when a provider supplies one) play in the native player; other links use the embed or open-on-site path.
-- Alternate playback chips use the direct media URL when one exists.
-
-## Changelog
-
-- Catalogue merger: titles from different providers are grouped by canonical and alternate names (English, romaji, synonyms), and every provider record is kept.
-- Title pages list each provider link with its episode number. Direct media URLs (when a provider supplies one) play in the native player; other links use the embed or open-on-site path.
-- Alternate playback chips use the direct media URL when one exists.
-- Episode numbers are normalised, so "01", "1" and "1.0" are treated as the same episode.
-- Every episode number in the grid is playable. Episodes with a direct link play that link. Episodes no provider lists open the title's source site inside the player, with a note saying so.
-- New look: a "lantern" theme with a floating bottom dock, a mosaic library grid with featured tiles, and ticket-style episode tiles.
-- Source Settings in three numbered sections (Watch, Sources, Downloads) with per-source switches, a route preview and a Confirm button. Watch mode can be auto, verified only, or manual.
-- Playback: SUB/DUB chooser when both exist, prev/next, fit/fill, fullscreen, and a source · audio · quality bar.
-- Downloads: direct video files save to the browser (IndexedDB) and play offline. Streams and website players open on their own site.
-- Cloud catalog: local index stats, per-source status, sync, and a JSON snapshot export. This is the app's local index, not a hosted database.
+## Android
+- `npm install`
+- `npx cap add android` (first Android project setup)
+- `npm run sync`
+- `npx cap open android`

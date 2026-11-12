@@ -122,6 +122,14 @@ h3{font:700 17px var(--disp);text-transform:uppercase;letter-spacing:.07em;margi
 .src b{display:block}
 .src small{display:block;color:var(--mut);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .src small.err{color:var(--rose)}
+.providers{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px}
+.provider-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:13px;border:1px solid var(--line);border-radius:13px;background:var(--panel2)}
+.provider-card b{display:block}
+.provider-card small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.provider-card input{margin-top:8px}
+.provider-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.provider-note{padding:12px 14px;border:1px dashed #f2b35c66;border-radius:12px;color:var(--mut);font-size:12px;margin-top:12px}
+
 .rec{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:8px;border-radius:12px;cursor:pointer}
 .rec:hover{background:#ffffff0a}
 .rp{width:46px;height:64px;border-radius:8px;overflow:hidden;background:var(--panel2);flex:0 0 46px}
@@ -221,6 +229,7 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
   <button class="nav" data-v="home">Home</button>
   <button class="nav" data-v="library">Library</button>
   <button class="nav" data-v="latest">Latest</button>
+  <button class="nav" data-v="schedule">Schedule</button>
   <button class="nav" data-v="watchlist">Watchlist</button>
   <button class="nav" data-v="history">History</button>
   <button class="nav" data-v="downloads">Downloads</button>
@@ -473,12 +482,12 @@ function wview(){
   const i=have.indexOf(String(p.ep)),pe=i>0?have[i-1]:'',ne=i>=0&&i<have.length-1?have[i+1]:'',x=p.e;
   const rec=(e.from||[]).find(f=>(f.video||f.link)===p.url);
   const audio=p.audio||(rec&&isDub(rec)?'DUB':'SUB');
-  const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline preload="metadata" controlslist="nodownload" ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`:`<iframe src="${safe(x.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${x.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`):`<p class="empty">${esc(p.msg)}</p>`;
+  const frame=x?((x.type==='video'||x.type==='hls')?`<video id="pv" controls autoplay playsinline preload="metadata" controlslist="nodownload" onerror="failover()" ${x.type==='video'?`src="${safe(x.src)}"`:''}></video>`:`<iframe src="${safe(x.src)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen ${x.type==='page'?'sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"':''}></iframe>`):`<p class="empty">${esc(p.msg)}</p>`;
   const top=Math.max(0,...have.map(num)),tot=Math.min(300,Math.max(e.total||0,top));const allN=new Set(have);for(let k=1;k<=tot;k++)allN.add(String(k));const full=[...allN].sort((a,b)=>num(a)-num(b));
   const order=WSORT==='desc'?[...full].reverse():full;
   const cls=ep=>`${String(p.ep)===ep?'cur':''} ${sn.eps[ep]?'seen':''}`;
-  const tile=ep=>`<button class="ep ${cls(ep)} ${epm.has(ep)?'':'via'}" data-act="ep" data-ep="${esc(ep)}">${esc(ep)}<small>${esc([...new Set((epm.get(ep)||[]).flatMap(y=>y.sub||[]))].join(', ')||(epm.has(ep)?'Episode '+ep:'via source'))}</small></button>`;
-  const rowb=ep=>{const f=epm.get(ep)||[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');return`<button class="epr ${cls(ep)}" data-act="ep" data-ep="${esc(ep)}"><b>Episode ${esc(ep)}</b><small>${esc(lb?lb+' · ':'')}${esc(f.map(y=>y.src).join(', '))}</small></button>`};
+  const tile=ep=>`<button class="ep ${cls(ep)} ${epm.has(ep)?'':'via'}" ${epm.has(ep)?`data-act="ep" data-ep="${esc(ep)}"`:'disabled'}>${esc(ep)}<small>${esc([...new Set((epm.get(ep)||[]).flatMap(y=>y.sub||[]))].join(', ')||(epm.has(ep)?'Episode '+ep:'no link'))}</small></button>`;
+  const rowb=ep=>{const f=epm.get(ep)||[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');return`<button class="epr ${cls(ep)}" ${epm.has(ep)?`data-act="ep" data-ep="${esc(ep)}"`:'disabled'}><b>Episode ${esc(ep)}</b><small>${esc(lb?lb+' · ':'')}${esc(f.map(y=>y.src).join(', '))}</small></button>`};
   const r=recs(e,LIB.list).slice(0,8);
   const alts=p.alts||[];
   return`<div class="page"><div class="wt"><div>
@@ -486,8 +495,8 @@ function wview(){
 <div class="row"><button class="btn sm" data-act="ep" data-ep="${esc(pe)}" ${pe?'':'disabled'}>‹ Prev</button><button class="btn sm" data-act="ep" data-ep="${esc(ne)}" ${ne?'':'disabled'}>Next ›</button><button class="btn sm" data-act="fit">${FIT==='fit'?'Fill frame':'Fit frame'}</button><button class="btn sm" data-act="fullscr">Fullscreen</button>${bmBtn(p.k)}<button class="btn sm" data-act="share">Share</button></div></div>
 <div class="vid ${FIT==='fill'?'fill':''}">${frame}</div>
 ${p.note?`<p class="note">${esc(p.note)}</p>`:''}
-${x&&x.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open source”.</p>':''}
-<div class="vbar"><span class="pill amber">${esc(audio)}</span><span class="pill">${esc(rec?rec.src:'Source')}</span><span class="pill">${esc(qualityOf(e,p.url))}</span><span class="grow"></span><a class="btn sm" href="${safe(p.url)}" target="_blank" rel="noopener noreferrer">Open source ↗</a>${p.ep?`<button class="btn sm pri" data-act="dl" data-k="${esc(p.k)}" data-ep="${esc(p.ep)}">↓ Download episode</button>`:''}</div>
+${x&&x.type==='page'?'<p class="note">Showing the provider website inside the boxed player. If it stays blank or refuses to load, use “Open source” to open it separately.</p>':''}
+<div class="vbar"><span class="pill amber">${esc(audio)}</span><span class="pill">${esc(rec?rec.src:(p.externalProvider?p.title:'Source'))}</span><span class="pill">${esc(qualityOf(e,p.url))}</span><span class="grow"></span><a class="btn sm" href="${safe(p.url)}" target="_blank" rel="noopener noreferrer">Open source ↗</a>${p.ep?`<button class="btn sm pri" data-act="dl" data-k="${esc(p.k)}" data-ep="${esc(p.ep)}">↓ Download episode</button>`:''}</div>
 ${alts.length>1?`<details class="play-sources"><summary>${alts.length} playback sources for this episode</summary><div class="chips">${alts.map(f=>`<button class="chip ${(f.video||f.link)===p.url?'on':''}" data-act="srv" data-u="${esc(f.video||f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div></details>`:''}
 </div><aside><div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:12px"><b class="pl-h">Episodes</b><div class="row"><button class="btn sm" data-act="wlist">${WLIST?'Tiles':'List'}</button><button class="btn sm" data-act="wsort">${WSORT==='asc'?'Oldest first':'Newest first'}</button></div></div>
 ${full.length?(WLIST?`<div class="eprs">${order.map(rowb).join('')}</div>`:`<div class="eps">${order.map(tile).join('')}</div>`):'<p class="note">No episode numbers from your sources for this title.</p>'}</div>
@@ -556,7 +565,7 @@ function tview(e,L){
 ${w?`<div class="chips" style="margin:14px 0 0">${['Plan to watch','Watching','Completed','Dropped'].map(t=>`<button class="chip ${w.tag===t?'on':''}" data-act="tag" data-k="${esc(e.k)}" data-t="${t}">${t}</button>`).join('')}</div>`:''}
 <p class="note" style="margin-top:12px">${sn.last?`Last watched · Episode ${esc(sn.last.ep)} · ${ago(sn.last.at)} <button class="chip" data-act="clrp" data-k="${esc(e.k)}">Clear progress</button>`:'Nothing watched yet.'}</p></div></div>
 ${list.length?`<h3 style="margin-bottom:14px">Episodes</h3><div class="eps">${list.map(x=>{const has=epm.has(x),seen=sn.eps[x],f=has?epm.get(x):[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');
-return`<button class="ep ${seen?'seen':''}" data-act="ep" data-ep="${esc(x)}" title="${esc(has?f.map(y=>y.src).join(', '):'Plays through the source site')}">${esc(x)}<small>${esc(lb||(has?'':'via source'))}</small></button>`}).join('')}</div>`:''}
+return`<button class="ep ${seen?'seen':''} ${has?'':'via'}" ${has?`data-act="ep" data-ep="${esc(x)}"`:'disabled'} title="${esc(has?f.map(y=>y.src).join(', '):'Not available from your sources')}">${esc(x)}<small>${esc(lb||(has?'':'no link'))}</small></button>`}).join('')}</div>`:''}
 ${sourceRecords.length?`<h3 style="margin-bottom:10px">Provider links and episodes</h3><p class="note">All matching provider records are kept here. Episode links stay grouped with their episode numbers.</p><ul class="fl">${sourceRecords.map(f=>{const u=f.video||f.link;return`<li><div><b>${esc(f.src)}${f.ep?' · Episode '+esc(f.ep):' · Catalogue'}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}${f.video?' · Direct media':''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(u)}" data-k="${esc(e.k)}" ${f.ep?`data-ep="${esc(f.ep)}"`:''}>Play</button>${f.link&&f.link!==u?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Provider</a>`:`<a class="btn sm" href="${safe(u)}" target="_blank" rel="noopener noreferrer">Open</a>`}</li>`}).join('')}</ul>`:''}
 ${r.length?rail('You might also like','library',r):''}</div>`;
 }
@@ -577,6 +586,18 @@ const PRESETS=[
 {name:'Internet Archive · Animation',url:'https://archive.org/advancedsearch.php?q=collection%3Aanimationandcartoons&fl%5B%5D=identifier&fl%5B%5D=title&sort%5B%5D=downloads+desc&rows=100&page=__PAGE__&output=json',pages:3}];
 /* ---- preferences, playback choice, downloads, cloud catalog, settings ---- */
 st.prefs=Object.assign({watchMode:'auto',watchSub:'',watchDub:'',dlSub:'',dlDub:'',quality:'720p',notify:true,enabled:{}},st.prefs||{});
+
+const PROVIDERS=[
+  {id:'anikoto',name:'AniKoto'},
+  {id:'animepahe',name:'AnimePahe'},
+  {id:'reanime',name:'ReAnime'},
+  {id:'donghuazone',name:'DonghuaZone'},
+  {id:'donghuanation',name:'DonghuaNation'},
+  {id:'animekhor',name:'AnimeKhor'},
+  {id:'donghuastream',name:'DonghuaStream'}
+];
+st.providers=Object.assign({},Object.fromEntries(PROVIDERS.map(p=>[p.id,''])),st.providers||{});
+
 let FIT='fit',DLC=[],DLP={};
 const enabledSrc=n=>st.prefs.enabled[n]!==false;
 const isDubRaw=t=>/\bdub(bed)?\b/i.test(String(t||''));
@@ -606,10 +627,16 @@ function playEp(e,ep,audio){
   if(!audio&&opts.length===1)audio=opts[0];
   const f=pickRecords(e,key,audio)[0];
   if(f){markSeen(e.k,key);play(f.video||f.link,e.k,e.title,key,{audio:audio||'SUB'});return}
-  if((st.prefs.watchMode||'auto')==='verified')return toast('No verified link for episode '+key+'. Change Watch mode in Settings.');
-  const s=(e.from||[]).find(x=>x.link&&enabledSrc(x.src))||(e.from||[]).find(x=>x.video&&enabledSrc(x.src));
-  if(!s)return toast('No source links for this title yet.');
-  play(s.link||s.video,e.k,e.title,key,{audio:audio||'SUB',note:`Episode ${key} isn’t listed by your sources, so this shows ${s.src}’s page for the title. Pick the episode there.`});
+  return toast('No link for episode '+key+' from your sources.');
+}
+
+/* Failover: if a link fails, move to the next link for the same episode and say so on screen */
+function failover(){
+  if(!PLAY)return;
+  const tried=[...(PLAY.tried||[]),PLAY.url];
+  const next=(PLAY.alts||[]).find(f=>{const u=f.video||f.link;return !!u&&!tried.includes(u)&&typeOf(u)==='video'});
+  if(!next)return toast('No other working link for this episode.');
+  play(next.video||next.link,PLAY.k,PLAY.title,PLAY.ep,{audio:PLAY.audio,tried,note:'The previous link failed, so the app switched to '+next.src+' for this episode.'});
 }
 
 /* IndexedDB store for downloaded episodes */
@@ -657,6 +684,20 @@ function dlView(){
 ${rows.length?`<ul class="dl-list">${rows.map(r=>`<li class="dl-row"><div class="dl-meta"><b>${esc(r.title)}</b><small>Episode ${esc(r.ep)} · ${esc(r.src||'')}${r.busy?' · downloading':' · '+fmtBytes(r.size||0)}</small></div>${r.busy?`<div class="bar"><i style="width:${Math.max(4,r.pct).toFixed(0)}%"></i></div><span class="pct">${Math.round(r.pct)}%</span>`:`<div class="bar"><i style="width:100%"></i></div><div class="row"><button class="btn sm pri" data-act="dlplay" data-id="${esc(r.id)}">▶ Play</button><button class="btn sm" data-act="dldel" data-id="${esc(r.id)}">Delete</button></div>`}</li>`).join('')}</ul>`:`<div class="empty-box"><b>Nothing saved yet</b><p class="note">Open a title, pick an episode and press Download episode. Direct video files save to this device. Streams and website players open on their own site, where their download controls apply.</p></div>`}`;
 }
 
+/* Schedule: upcoming and recent episodes from the AnimeSchedule feeds */
+function scheduleView(){
+  const items=st.sources.filter(s=>/AnimeSchedule/i.test(s.name)).flatMap(s=>(s.items||[]).map(i=>({...i,src:s.name})));
+  const seen=new Set(),rows=items.filter(i=>{const k=norm(i.title)+'|'+i.ep;if(seen.has(k))return false;seen.add(k);return true});
+  const dated=rows.filter(i=>i.date).sort((a,b)=>a.date-b.date);
+  const undated=rows.filter(i=>!i.date);
+  if(!rows.length)return'<div class="empty-box"><b>No schedule yet</b><p class="note">Schedule comes from the AnimeSchedule feeds. Turn them on in Settings, then press Sync.</p></div>';
+  const groups={};dated.forEach(i=>{const d=new Date(i.date).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});(groups[d]=groups[d]||[]).push(i)});
+  const row=i=>{const t=new Date(i.date).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});const has=LIB.map.has(norm(i.title));return`<li class="sch-row"><span class="sch-t">${esc(t)}</span><div class="sch-b"><b>${esc(i.title)}</b><small>${i.ep?'Episode '+esc(i.ep)+' · ':''}${esc(i.src)}</small></div>${has?`<button class="btn sm" data-open="${esc(norm(i.title))}">Open</button>`:''}</li>`};
+  let h=Object.entries(groups).map(([d,l])=>`<h3>${esc(d)}</h3><ul class="sch">${l.map(row).join('')}</ul>`).join('');
+  if(undated.length)h+=`<h3>Undated in feed</h3><ul class="sch">${undated.map(i=>`<li class="sch-row"><span class="sch-t">—</span><div class="sch-b"><b>${esc(i.title)}</b><small>${i.ep?'Episode '+esc(i.ep)+' · ':''}${esc(i.src)}</small></div></li>`).join('')}</ul>`;
+  return h;
+}
+
 /* local catalog index ("cloud" panel) */
 function snapshot(){return{schema:'ani-me-catalog',version:2,exportedAt:new Date().toISOString(),sources:st.sources.map(s=>({name:s.name,url:s.url||'',status:s.status||'',items:(s.items||[]).length,updated:s.updated||null})),titles:LIB.list.map(e=>({title:e.title,aliases:e.aliases||[],tags:e.tags||[],total:e.total||0,score:e.score||0,episodes:Object.fromEntries([...epsOf(e)].map(([k,l])=>[k,l.map(f=>({source:f.src,link:f.link||'',video:f.video||''}))]))}))}}
 function cloudView(){
@@ -694,6 +735,12 @@ function srcView(){
   const qual=['360p','480p','720p','1080p'];
   const bad=st.sources.filter(s=>s.status==='error').length;
   const route=`Watch: <b>${esc(P.watchSub||'best link')}</b> for sub, <b>${esc(P.watchDub||'best link')}</b> for dub${P.watchMode==='verified'?' · verified links only':''}. Downloads: <b>${esc(P.dlSub||'best source')}</b> at <b>${esc(P.quality)}</b>.`;
+
+  const providerCards=PROVIDERS.map(p=>{
+    const url=st.providers[p.id]||'';
+    return `<div class="provider-card"><div><b>${esc(p.name)}</b><small>${url?'Provider address saved on this device':'Add the provider’s website address to enable it'}</small><input name="provider:${p.id}" type="url" inputmode="url" placeholder="https://provider.example" value="${esc(url)}" aria-label="${esc(p.name)} website address"></div><div class="provider-actions"><button class="btn sm pri" type="button" data-act="provider-open" data-provider="${p.id}" ${url?'':'disabled'}>Open in player</button><button class="btn sm" type="button" data-act="provider-tab" data-provider="${p.id}" ${url?'':'disabled'}>Open site</button></div></div>`;
+  }).join('');
+
   return`<form id="prefs" class="set">
 <section class="set-sec"><div class="set-n">01</div><div class="set-b"><h3>Watch</h3><p class="note">How the player picks a stream when you press play.</p>
 <div class="fields"><label><span>Watch mode</span><select name="watchMode">${modes.map(([v,l])=>opt(v,P.watchMode,l)).join('')}</select></label>
@@ -716,6 +763,7 @@ function srcView(){
 <form id="dm" class="row" style="margin-top:6px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form>
 <form id="yt" class="row" style="margin-top:10px"><input name="n" style="flex:1;min-width:120px" placeholder="Channel name (optional)" aria-label="YouTube channel name"><input name="c" style="flex:2;min-width:200px" placeholder="YouTube channel ID (starts with UC) or feed link" aria-label="YouTube channel ID"><button class="btn" type="submit">Add YouTube</button></form></section>
 <section class="panel"><h3>Add a source</h3><form id="add" class="stack"><input name="name" placeholder="Name (optional)" aria-label="Source name"><input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address"><textarea name="raw" rows="3" placeholder="…or paste JSON / RSS text here" aria-label="Pasted data"></textarea><div class="row"><button class="btn pri" type="submit">Add source</button><label class="btn">Import file<input id="file" type="file" accept=".json,.xml,.rss,.txt" hidden></label><button class="btn" type="button" data-act="export">Export sources</button></div></form></section>
+<section class="panel"><h3>Streaming provider shortcuts</h3><p class="note">Add each provider’s website address. “Open in player” loads the site inside the boxed player; “Open site” opens a separate tab if the provider blocks embedding.</p><div class="providers">${providerCards}</div><div class="provider-note">These are website shortcuts, not automatic catalogue or stream extractors. A provider must permit embedding for its pages to play inside the app. No DRM, login, paywall, or access-control bypass is attempted.</div><div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="providers-save">Save provider addresses</button></div></section>
 <section class="panel"><h3>Your sources (${st.sources.length})</h3>${bad?`<div class="row" style="margin-bottom:10px"><button class="btn sm" data-act="dropbad">Remove ${bad} failed source${bad>1?'s':''}</button></div>`:''}
 ${st.sources.map(s=>`<div class="src"><div><b>${esc(s.name)}</b><small>${esc(s.url||'Pasted or imported data')}</small><small class="${s.status==='error'||s.error?'err':''}">${s.status==='loading'?'Loading…':s.error||`${(s.items||[]).length} items`}</small></div>${s.url?`<button class="btn sm" data-act="reload" data-id="${s.id}">Reload</button>`:''}<button class="btn sm" data-act="del" data-id="${s.id}">Remove</button></div>`).join('')||'<p class="empty">No sources yet.</p>'}</section>
 <section class="panel"><h3>Watchlist backup</h3><p class="note">Export your watchlist and progress, or import one. Imports accept this app’s file, a JSON list of titles, or a text file with one title per line.</p><div class="row"><button class="btn" data-act="expwl">Export watchlist</button><label class="btn">Import watchlist<input id="wlfile" type="file" accept=".json,.txt,.csv" hidden></label></div></section>
@@ -753,7 +801,7 @@ function draw(){
   else if(view==='latest'){const f=flt(latest);T=['Latest','Newest first'];h=chips()+grid(f.slice(0,LIM),'No titles yet. Add a source under Settings.')+more(f)}
   else if(view==='watchlist'){const f=flt(W);T=['Watchlist',`${W.length} saved`];h=grid(f,'Tap the bookmark on any title to save it here.')}
   else if(view==='history'){const f=flt(H);T=['History','Recently opened'];h=(H.length?`<div class="row" style="margin-bottom:16px"><button class="btn sm" data-act="clrh">Clear history</button></div>`:'')+grid(f,'Titles you open will appear here.')}
-  else if(view==='downloads'){T=['Downloads',DLC.length?DLC.length+' saved on this device':'Offline copies'];h=dlView()}else if(view==='cloud'){T=['Cloud catalog','Local index built from your sources'];h=cloudView()}else{T=['Settings','01 Watch · 02 Sources · 03 Downloads'];h=srcView()}
+  else if(view==='downloads'){T=['Downloads',DLC.length?DLC.length+' saved on this device':'Offline copies'];h=dlView()}else if(view==='schedule'){T=['Schedule','Upcoming episodes from AnimeSchedule'];h=scheduleView()}else if(view==='cloud'){T=['Cloud catalog','Local index built from your sources'];h=cloudView()}else{T=['Settings','01 Watch · 02 Sources · 03 Downloads'];h=srcView()}
   if(view!=='home'&&view!=='title'&&view!=='watch')h=`<div class="page">${h}</div>`;
   document.body.classList.toggle('nohead',view==='home'||view==='title'||view==='watch');
   $('#ttl').textContent=T[0];$('#sub').textContent=T[1];
@@ -789,6 +837,18 @@ document.addEventListener('click',async ev=>{
   const a=b.dataset.act,s=st.sources.find(x=>x.id===b.dataset.id);
   if(a==='fit'){FIT=FIT==='fit'?'fill':'fit';draw();return}
   if(a==='fullscr'){const el=$('#pv')||$('#view iframe');if(el&&el.requestFullscreen)el.requestFullscreen().catch(()=>toast('Fullscreen is blocked here.'));return}
+
+  if(a==='providers-save'){
+    PROVIDERS.forEach(p=>{const f=document.querySelector(`[name="provider:${p.id}"]`);if(f)st.providers[p.id]=f.value.trim()});
+    save();toast('Provider addresses saved on this device.');render();return;
+  }
+  if(a==='provider-open'||a==='provider-tab'){
+    const p=PROVIDERS.find(x=>x.id===b.dataset.provider),u=p&&st.providers[p.id];
+    if(!p||!u||!/^https?:\/\//i.test(u))return toast('Add a valid website address and save it first.');
+    if(a==='provider-tab'){window.open(u,'_blank','noopener,noreferrer');return;}
+    play(u,'provider:'+p.id,p.name,'',{externalProvider:true});return;
+  }
+
   if(a==='audio'){document.querySelector('#audio')?.remove();const e=entryFor(b.dataset.k);if(e)playEp(e,b.dataset.ep,b.dataset.a);return}
   if(a==='closeaudio'){document.querySelector('#audio')?.remove();return}
   if(a==='dl'){downloadEp(b.dataset.k,b.dataset.ep);return}
