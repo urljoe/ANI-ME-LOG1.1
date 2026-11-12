@@ -1,0 +1,25 @@
+name: Catalogue live integration checks
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 7 * * 1'
+  push:
+    branches:
+      - feature/live-integration-tests-v1-3
+      - main
+    paths:
+      - 'source-engine.js'
+      - 'tests/**'
+      - '.github/workflows/live-integration.yml'
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit-test source engine
+        run: node --test tests/source-engine.test.cjs
+      - name: Probe live catalogue endpoints
+        run: node tests/live-integration.mjs
