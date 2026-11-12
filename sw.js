@@ -1,8 +1,11 @@
 /* Ani-Me Log offline app shell. Video streams and third-party feeds remain network-dependent. */
-const CACHE = 'anime-log-shell-v2';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './sources.json'];
+const CACHE = 'anime-log-shell-v1.1.1';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './sources.json', './version.json'];
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
+});
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'ACTIVATE_UPDATE') self.skipWaiting();
 });
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
@@ -16,6 +19,10 @@ self.addEventListener('fetch', event => {
     event.respondWith(fetch(req).then(response => {
       const copy = response.clone(); caches.open(CACHE).then(cache => cache.put('./index.html', copy)); return response;
     }).catch(() => caches.match('./index.html')));
+    return;
+  }
+  if (url.pathname.endsWith('/version.json')) {
+    event.respondWith(fetch(req, { cache: 'no-store' }).catch(() => caches.match('./version.json')));
     return;
   }
   if (url.pathname.endsWith('/sources.json')) {
