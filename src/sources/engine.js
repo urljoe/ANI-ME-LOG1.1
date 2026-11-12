@@ -176,7 +176,15 @@
     ['donghuazone', 'DonghuaZone'],
     ['donghuanation', 'DonghuaNation'],
     ['animekhor', 'AnimeKhor'],
-    ['donghuastream', 'DonghuaStream']
+    ['donghuastream', 'DonghuaStream'],
+    ['aniworld', 'AniWorld'],
+    ['kickassanime', 'KickAssAnime'],
+    ['anime4up', 'Anime4Up'],
+    ['animesama', 'Anime-Sama'],
+    ['latanime', 'Latanime'],
+    ['mugiwara', 'Mugiwara'],
+    ['justanime', 'JustAnime'],
+    ['animeav1', 'AnimeAV1']
   ].forEach(([id, name]) => registerProvider({
     id, name, kind: 'website-shortcut', adapterId: 'website-shortcut'
   }));
