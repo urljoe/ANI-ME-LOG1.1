@@ -431,26 +431,7 @@ async function runAll(list){
 /* merge every source into one list */
 /* Merge provider records by canonical and alternate titles while retaining every source link. */
 function build(){
-  const m=new Map(),keys=new Map();
-  const addKey=(key,e)=>{if(!key)return;const old=keys.get(key);if(old&&old!==e)return old;keys.set(key,e);m.set(e.k,e);return e};
-  st.sources.forEach(s=>(s.items||[]).forEach((i,idx)=>{
-    const names=[i.title,...(i.aliases||[])].filter(Boolean),norms=[...new Set(names.map(norm).filter(k=>k.length>=4))];
-    const found=norms.map(k=>keys.get(k)).find(Boolean);
-    const primary=norm(i.title);if(!primary)return;
-    let e=found;
-    if(!e){e={k:primary,title:i.title,image:i.image,ep:i.ep,date:i.date||0,ord:idx,desc:'',tags:[],total:0,score:0,aliases:[],from:[]};m.set(e.k,e)}
-    else if(i.title&&i.title.length>e.title.length&&(!e.title||e.title.length<4))e.title=i.title;
-    e.image=e.image||i.image;if(num(i.ep)>num(e.ep))e.ep=i.ep;e.date=Math.max(e.date,i.date||0);e.ord=Math.min(e.ord,idx);
-    if((i.desc||'').length>e.desc.length)e.desc=i.desc;
-    (i.tags||[]).forEach(t=>{if(t&&!e.tags.includes(t))e.tags.push(t)});
-    e.total=Math.max(e.total,i.total||0);e.score=Math.max(e.score,i.score||0);
-    names.forEach(n=>{if(n&&norm(n)!==norm(e.title)&&!e.aliases.includes(n))e.aliases.push(n);addKey(norm(n),e)});
-    const raw=i.raw||i.title,video=i.video||'';
-    if(!e.from.some(f=>f.src===s.name&&f.raw===raw&&f.ep===i.ep&&f.link===i.link&&f.video===video))
-      e.from.push({src:s.name,raw,ep:i.ep,link:i.link,video,sub:i.sub||[]});
-    addKey(primary,e);
-  }));
-  return{map:m,list:[...m.values()].sort((a,b)=>a.title.localeCompare(b.title))};
+  return SourceEngine.mergeCatalog(st.sources,norm,num);
 }
 const snap=e=>({k:e.k,title:e.title,image:e.image,ep:e.ep,from:(e.from||[]).slice(0,12)});
 const wl=k=>!!st.watch[k];
