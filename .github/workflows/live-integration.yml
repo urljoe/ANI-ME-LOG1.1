@@ -1,0 +1,31 @@
+name: Catalogue live integration checks
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/sources/**'
+      - 'test/**'
+      - 'tests/**'
+      - '.github/workflows/live-integration.yml'
+  schedule:
+    - cron: '23 7 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - 'src/sources/**'
+      - 'test/**'
+      - 'tests/**'
+      - '.github/workflows/live-integration.yml'
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit-test source adapters
+        run: node --test test/sources/*.test.js
+      - name: Probe live catalogue endpoints
+        run: node tests/live-integration.mjs
