@@ -154,8 +154,11 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 .seek-zone.right{right:0;justify-content:flex-end;padding-right:clamp(12px,4vw,42px)}
 .seek-zone span{display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:999px;background:#071015b8;border:1px solid #ffffff35;font:700 13px var(--body);opacity:0;transform:scale(.94);transition:opacity .12s,transform .12s;pointer-events:none}
 .seek-zone:hover span,.seek-zone:focus-visible span,.seek-zone:active span{opacity:1;transform:scale(1)}
-.seek-flash{position:absolute;top:38%;z-index:4;left:50%;transform:translate(-50%,-50%);padding:10px 16px;border-radius:999px;background:#071015d9;border:1px solid #ffffff40;color:#fff;font-weight:700;opacity:0;pointer-events:none;transition:opacity .15s}
-.seek-flash.show{opacity:1}
+.seek-flash{position:absolute;top:38%;z-index:4;left:50%;transform:translate(-50%,-50%) scale(.96);padding:10px 16px;border-radius:18px;background:rgba(7,16,21,.42);-webkit-backdrop-filter:blur(5px) saturate(125%);backdrop-filter:blur(5px) saturate(125%);border:1px solid rgba(255,255,255,.32);box-shadow:0 5px 18px rgba(0,0,0,.18);color:#fff;font-weight:700;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
+.seek-flash::after{content:"";position:absolute;bottom:-6px;left:50%;width:10px;height:10px;background:inherit;border-right:1px solid rgba(255,255,255,.32);border-bottom:1px solid rgba(255,255,255,.32);transform:translateX(-50%) rotate(45deg)}
+.seek-flash.left{left:20%}
+.seek-flash.right{left:80%}
+.seek-flash.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .vid .empty{border:0;display:grid;place-items:center;height:100%;margin:0}
 .vbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
 .pill{padding:5px 11px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:12px;color:var(--mut)}
@@ -869,7 +872,7 @@ function seekByZone(zone){
   const end=Number.isFinite(v.duration)?v.duration:Infinity;
   v.currentTime=Math.min(end,Math.max(0,(v.currentTime||0)+delta));
   const flash=$('#seek-flash');
-  if(flash){flash.textContent=side==='left'?'−10 seconds ↶':'+10 seconds ↷';flash.classList.add('show');clearTimeout(flash._hideTimer);flash._hideTimer=setTimeout(()=>flash.classList.remove('show'),650)}
+  if(flash){flash.textContent=side==='left'?'−10 sec ↶':'+10 sec ↷';flash.classList.remove('left','right');flash.classList.add('show',side);clearTimeout(flash._hideTimer);flash._hideTimer=setTimeout(()=>flash.classList.remove('show'),750)}
 }
 /* events */
 document.addEventListener('click',async ev=>{
