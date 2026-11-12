@@ -244,7 +244,9 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 </nav>
 <footer>thewiltedpetals.blooms</footer>
 <div id="toast" role="status"></div>
+<script src="./src/sources/engine.js"></script>
 <script>
+const SourceEngine=window.AniMeSourceEngine;
 const K='animelog.v1',$=s=>document.querySelector(s);
 let st={sources:[],proxy:'',auto:true,watch:{},hist:[],seen:{},device:'auto'},view='home',prev='home',CUR='',q='',fsrc='',LIM=120,LIB={map:new Map(),list:[]},PLAY=null,DEV='win',HLSP=null,WSORT='asc',WLIST=false;
 try{Object.assign(st,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
@@ -403,10 +405,15 @@ async function fetchItems(s){
   }
   return all;
 }
+SourceEngine.registerAdapter({
+  id:'configured-feed',
+  matches:source=>!source.providerId,
+  load:async source=>source.raw!=null?parseText(source.raw):await fetchItems(source)
+});
 async function load(s){
   s.status='loading';render();
   try{
-    s.items=s.raw!=null?parseText(s.raw):await fetchItems(s);
+    s.items=await SourceEngine.load(s);
     s.items.forEach(i=>{i.sub=subs(i.raw||i.title,s.name)});
     s.status='ok';s.error='';s.updated=Date.now();
     if(!s.items.length)s.error='Loaded, but no titles were found in this source.';
@@ -594,15 +601,7 @@ const PRESETS=[
 /* ---- preferences, playback choice, downloads, cloud catalog, settings ---- */
 st.prefs=Object.assign({watchMode:'auto',watchSub:'',watchDub:'',dlSub:'',dlDub:'',quality:'720p',notify:true,enabled:{}},st.prefs||{});
 
-const PROVIDERS=[
-  {id:'anikoto',name:'AniKoto'},
-  {id:'animepahe',name:'AnimePahe'},
-  {id:'reanime',name:'ReAnime'},
-  {id:'donghuazone',name:'DonghuaZone'},
-  {id:'donghuanation',name:'DonghuaNation'},
-  {id:'animekhor',name:'AnimeKhor'},
-  {id:'donghuastream',name:'DonghuaStream'}
-];
+const PROVIDERS=SourceEngine.listProviders();
 st.providers=Object.assign({},Object.fromEntries(PROVIDERS.map(p=>[p.id,''])),st.providers||{});
 
 let FIT='fit',DLC=[],DLP={};
@@ -861,14 +860,21 @@ document.addEventListener('click',async ev=>{
   if(a==='fullscr'){const el=$('#pv')||$('#view iframe');if(el&&el.requestFullscreen)el.requestFullscreen().catch(()=>toast('Fullscreen is blocked here.'));return}
 
   if(a==='providers-save'){
-    PROVIDERS.forEach(p=>{const f=document.querySelector(`[name="provider:${p.id}"]`);if(f)st.providers[p.id]=f.value.trim()});
+    try{
+      PROVIDERS.forEach(p=>{
+        const f=document.querySelector(`[name="provider:${p.id}"]`);
+        if(f)st.providers[p.id]=f.value.trim()?SourceEngine.validateWebsite(f.value):'';
+      });
+    }catch(e){return toast(e.message)}
     save();toast('Provider addresses saved on this device.');render();return;
   }
   if(a==='provider-open'||a==='provider-tab'){
     const p=PROVIDERS.find(x=>x.id===b.dataset.provider),u=p&&st.providers[p.id];
-    if(!p||!u||!/^https?:\/\//i.test(u))return toast('Add a valid website address and save it first.');
-    if(a==='provider-tab'){window.open(u,'_blank','noopener,noreferrer');return;}
-    play(u,'provider:'+p.id,p.name,'',{externalProvider:true});return;
+    if(!p||!u)return toast('Add a valid website address and save it first.');
+    let target;
+    try{target=SourceEngine.resolve(p.id,u).src}catch(e){return toast(e.message)}
+    if(a==='provider-tab'){window.open(target,'_blank','noopener,noreferrer');return;}
+    play(target,'provider:'+p.id,p.name,'',{externalProvider:true});return;
   }
 
   if(a==='audio'){document.querySelector('#audio')?.remove();const e=entryFor(b.dataset.k);if(e)playEp(e,b.dataset.ep,b.dataset.a);return}
