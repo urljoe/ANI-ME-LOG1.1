@@ -1,6 +1,6 @@
 /* Ani-Me Log offline app shell. Video streams and third-party feeds remain network-dependent. */
-const CACHE = 'anime-log-shell-v2';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './sources.json'];
+const CACHE = 'anime-log-shell-v3';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './sources.json', './src/sources/engine.js', './src/sources/adapters/animeschedule-rss.js', './src/sources/adapters/provider-catalog.js'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });
@@ -30,3 +30,4 @@ self.addEventListener('fetch', event => {
     return response;
   })));
 });
+

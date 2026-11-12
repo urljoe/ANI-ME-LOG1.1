@@ -244,8 +244,11 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 </nav>
 <footer>thewiltedpetals.blooms</footer>
 <div id="toast" role="status"></div>
-<script src="./source-engine.js"></script>
+<script src="./src/sources/engine.js"></script>
+<script src="./src/sources/adapters/animeschedule-rss.js"></script>
+<script src="./src/sources/adapters/provider-catalog.js"></script>
 <script>
+const SourceEngine=window.AniMeSourceEngine;
 const K='animelog.v1',$=s=>document.querySelector(s);
 let st={sources:[],proxy:'',auto:true,watch:{},hist:[],seen:{},device:'auto'},view='home',prev='home',CUR='',q='',fsrc='',LIM=120,LIB={map:new Map(),list:[]},PLAY=null,DEV='win',HLSP=null,WSORT='asc',WLIST=false;
 try{Object.assign(st,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
@@ -393,16 +396,9 @@ async function fetchSite(s){
 }
 const fill=(t,p,s)=>t.replace(/__PAGE__/g,p).replace(/__OFFSET__/g,(p-1)*(s.size||20));
 async function fetchItems(s){
-  if(!window.AniMeSourceEngine)throw new Error('Central source engine did not load.');
-  return window.AniMeSourceEngine.fetch(s,{
-    fetchFeed:async source=>{
-      const u=new URL(fill(source.url,1,source));
-      if(!source.body&&u.pathname==='/'&&!u.search)return fetchSite(source);
-      return fetchPaged(source);
-    },
-    fetchPaged,
-    fetchImported:async source=>parseText(source.raw||'')
-  });
+  const t=new URL(fill(s.url,1,s));
+  if(!s.body&&t.pathname==='/'&&!t.search)return fetchSite(s);
+  return fetchPaged(s);
 }
 async function fetchPaged(s){
   let all=[];
@@ -414,10 +410,17 @@ async function fetchPaged(s){
   }
   return all;
 }
+SourceEngine.registerAdapter(window.createAnimeScheduleRSSAdapter({fetchItems,parseText}));
+SourceEngine.registerAdapter({
+  id:'configured-feed',
+  matches:source=>!!source&&(source.adapterId==='configured-feed'||source.adapter==='configured-feed'),
+  load:async source=>source.raw!=null?parseText(source.raw):await fetchItems(source)
+});
+SourceEngine.registerAdapter(window.createProviderCatalogAdapter({fetchText:grab}));
 async function load(s){
   s.status='loading';render();
   try{
-    s.items=s.raw!=null?parseText(s.raw):await fetchItems(s);
+    s.items=await SourceEngine.load(s,{fetchPaged:fetchItems,fetchFeed:fetchItems,fetchImported:source=>parseText(source.raw||'')});
     s.items.forEach(i=>{i.sub=subs(i.raw||i.title,s.name)});
     s.status='ok';s.error='';s.updated=Date.now();
     if(!s.items.length)s.error='Loaded, but no titles were found in this source.';
@@ -435,26 +438,7 @@ async function runAll(list){
 /* merge every source into one list */
 /* Merge provider records by canonical and alternate titles while retaining every source link. */
 function build(){
-  const m=new Map(),keys=new Map();
-  const addKey=(key,e)=>{if(!key)return;const old=keys.get(key);if(old&&old!==e)return old;keys.set(key,e);m.set(e.k,e);return e};
-  st.sources.forEach(s=>(s.items||[]).forEach((i,idx)=>{
-    const names=[i.title,...(i.aliases||[])].filter(Boolean),norms=[...new Set(names.map(norm).filter(k=>k.length>=4))];
-    const found=norms.map(k=>keys.get(k)).find(Boolean);
-    const primary=norm(i.title);if(!primary)return;
-    let e=found;
-    if(!e){e={k:primary,title:i.title,image:i.image,ep:i.ep,date:i.date||0,ord:idx,desc:'',tags:[],total:0,score:0,aliases:[],from:[]};m.set(e.k,e)}
-    else if(i.title&&i.title.length>e.title.length&&(!e.title||e.title.length<4))e.title=i.title;
-    e.image=e.image||i.image;if(num(i.ep)>num(e.ep))e.ep=i.ep;e.date=Math.max(e.date,i.date||0);e.ord=Math.min(e.ord,idx);
-    if((i.desc||'').length>e.desc.length)e.desc=i.desc;
-    (i.tags||[]).forEach(t=>{if(t&&!e.tags.includes(t))e.tags.push(t)});
-    e.total=Math.max(e.total,i.total||0);e.score=Math.max(e.score,i.score||0);
-    names.forEach(n=>{if(n&&norm(n)!==norm(e.title)&&!e.aliases.includes(n))e.aliases.push(n);addKey(norm(n),e)});
-    const raw=i.raw||i.title,video=i.video||'';
-    if(!e.from.some(f=>f.src===s.name&&f.raw===raw&&f.ep===i.ep&&f.link===i.link&&f.video===video))
-      e.from.push({src:s.name,raw,ep:i.ep,link:i.link,video,sub:i.sub||[]});
-    addKey(primary,e);
-  }));
-  return{map:m,list:[...m.values()].sort((a,b)=>a.title.localeCompare(b.title))};
+  return SourceEngine.mergeCatalog(st.sources,norm,num);
 }
 const snap=e=>({k:e.k,title:e.title,image:e.image,ep:e.ep,from:(e.from||[]).slice(0,12)});
 const wl=k=>!!st.watch[k];
@@ -584,7 +568,7 @@ ${w?`<div class="chips" style="margin:14px 0 0">${['Plan to watch','Watching','C
 <p class="note" style="margin-top:12px">${sn.last?`Last watched · Episode ${esc(sn.last.ep)} · ${ago(sn.last.at)} <button class="chip" data-act="clrp" data-k="${esc(e.k)}">Clear progress</button>`:'Nothing watched yet.'}</p></div></div>
 ${list.length?`<h3 style="margin-bottom:14px">Episodes</h3><div class="eps">${list.map(x=>{const has=epm.has(x),seen=sn.eps[x],f=has?epm.get(x):[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');
 return`<button class="ep ${seen?'seen':''} ${has?'':'via'}" ${has?`data-act="ep" data-ep="${esc(x)}"`:'disabled'} title="${esc(has?f.map(y=>y.src).join(', '):'Not available from your sources')}">${esc(x)}<small>${esc(lb||(has?'':'no link'))}</small></button>`}).join('')}</div>`:''}
-${sourceRecords.length?`<h3 style="margin-bottom:10px">Provider links and episodes</h3><p class="note">All matching provider records are kept here. Episode links stay grouped with their episode numbers.</p><ul class="fl">${sourceRecords.map(f=>{const u=f.video||f.link;return`<li><div><b>${esc(f.src)}${f.ep?' · Episode '+esc(f.ep):' · Catalogue'}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}${f.video?' · Direct media':''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(u)}" data-k="${esc(e.k)}" ${f.ep?`data-ep="${esc(f.ep)}"`:''}>Play</button>${f.link&&f.link!==u?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Provider</a>`:`<a class="btn sm" href="${safe(u)}" target="_blank" rel="noopener noreferrer">Open</a>`}</li>`}).join('')}</ul>`:''}
+${sourceRecords.length?`<h3 style="margin-bottom:10px">Provider links and episodes</h3><p class="note">All matching provider records are kept here. Episode links stay grouped with their episode numbers.</p><ul class="fl">${sourceRecords.map(f=>{const u=f.video||f.link;return`<li><div><b>${esc(f.src)}${f.ep?' · Episode '+esc(f.ep):' · Catalogue'}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}${f.video?' · Direct media':''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(u)}" data-k="${esc(e.k)}" ${f.ep?`data-ep="${esc(f.ep)}"`:''}>${f.ep||f.video?'Play':'Open source'}</button>${f.link&&f.link!==u?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Provider</a>`:`<a class="btn sm" href="${safe(u)}" target="_blank" rel="noopener noreferrer">Open</a>`}</li>`}).join('')}</ul>`:''}
 ${r.length?rail('You might also like','library',r):''}</div>`;
 }
 
@@ -601,11 +585,21 @@ const PRESETS=[
 {name:'AnimeSchedule · Sub',url:'https://animeschedule.net/subrss.xml'},
 {name:'AnimeSchedule · Dub',url:'https://animeschedule.net/dubrss.xml'},
 {name:'AnimeSchedule · Raw',url:'https://animeschedule.net/jpnrss.xml'},
+{name:'AniKoto · Catalog',url:'https://anikototv.to/',providerId:'anikoto',adapterId:'provider-catalog'},
+{name:'AnimePahe · Catalog',url:'https://animepahe.ch/',providerId:'animepahe',adapterId:'provider-catalog'},
+{name:'AniWorld · Catalog',url:'https://aniworld.to/',providerId:'aniworld',adapterId:'provider-catalog'},
+{name:'KickAssAnime · Catalog',url:'https://kaa.lt/',providerId:'kickassanime',adapterId:'provider-catalog'},
+{name:'Anime4Up · Catalog',url:'https://w1.anime4up.rest/',providerId:'anime4up',adapterId:'provider-catalog'},
+{name:'Anime-Sama · Catalog',url:'https://anime-sama.to/',providerId:'animesama',adapterId:'provider-catalog'},
+{name:'Latanime · Catalog',url:'https://latanime.org/',providerId:'latanime',adapterId:'provider-catalog'},
+{name:'Mugiwara · Catalog',url:'https://www.mugiwara-no-streaming.com/',providerId:'mugiwara',adapterId:'provider-catalog'},
+{name:'JustAnime · Catalog',url:'https://justanime.to/',providerId:'justanime',adapterId:'provider-catalog'},
+{name:'AnimeAV1 · Catalog',url:'https://animeav1.com/',providerId:'animeav1',adapterId:'provider-catalog'},
 {name:'Internet Archive · Animation',url:'https://archive.org/advancedsearch.php?q=collection%3Aanimationandcartoons&fl%5B%5D=identifier&fl%5B%5D=title&sort%5B%5D=downloads+desc&rows=100&page=__PAGE__&output=json',pages:3}];
 /* ---- preferences, playback choice, downloads, cloud catalog, settings ---- */
 st.prefs=Object.assign({watchMode:'auto',watchSub:'',watchDub:'',dlSub:'',dlDub:'',quality:'720p',notify:true,enabled:{}},st.prefs||{});
 
-const PROVIDERS=window.AniMeSourceEngine.providers;
+const PROVIDERS=SourceEngine.listProviders();
 st.providers=Object.assign({},Object.fromEntries(PROVIDERS.map(p=>[p.id,''])),st.providers||{});
 
 let FIT='fit',DLC=[],DLP={};
@@ -636,7 +630,13 @@ function playEp(e,ep,audio){
   if(!audio&&opts.length>1){showAudioPicker(e,key);return}
   if(!audio&&opts.length===1)audio=opts[0];
   const f=pickRecords(e,key,audio)[0];
-  if(f){markSeen(e.k,key);play(f.video||f.link,e.k,e.title,key,{audio:audio||'SUB'});return}
+  if(f){
+    const resolved=SourceEngine.resolveSource(f);
+    if(!resolved||!resolved.src)return toast('No playable link or original source page is available for this episode.');
+    markSeen(e.k,key);
+    play(resolved.src,e.k,e.title,key,{audio:audio||'SUB',sourceAttribution:resolved.attribution||f.src,sourceFallback:resolved.fallbackUrl||f.link});
+    return;
+  }
   return toast('No link for episode '+key+' from your sources.');
 }
 
@@ -709,7 +709,7 @@ function scheduleView(){
 }
 
 /* local catalog index ("cloud" panel) */
-function snapshot(){return{schema:'ani-me-catalog',version:2,exportedAt:new Date().toISOString(),sources:st.sources.map(s=>({name:s.name,url:s.url||'',adapter:s.adapter||window.AniMeSourceEngine.infer(s),status:s.status||'',items:(s.items||[]).length,updated:s.updated||null})),titles:LIB.list.map(e=>({title:e.title,aliases:e.aliases||[],tags:e.tags||[],total:e.total||0,score:e.score||0,episodes:Object.fromEntries([...epsOf(e)].map(([k,l])=>[k,l.map(f=>({source:f.src,link:f.link||'',video:f.video||''}))]))}))}}
+function snapshot(){return{schema:'ani-me-catalog',version:2,exportedAt:new Date().toISOString(),sources:st.sources.map(s=>({name:s.name,url:s.url||'',adapter:SourceEngine.adapterFor(s).id,status:s.status||'',items:(s.items||[]).length,updated:s.updated||null})),titles:LIB.list.map(e=>({title:e.title,aliases:e.aliases||[],tags:e.tags||[],total:e.total||0,score:e.score||0,episodes:Object.fromEntries([...epsOf(e)].map(([k,l])=>[k,l.map(f=>({source:f.src,link:f.link||'',video:f.video||''}))]))}))}}
 function cloudView(){
   const L=LIB.list,links=L.reduce((a,e)=>a+(e.from||[]).length,0);
   const keys=new Set();L.forEach(e=>epsOf(e).forEach((_,k)=>keys.add(e.k+'|'+k)));
@@ -751,10 +751,10 @@ function srcView(){
     return `<div class="provider-card"><div><b>${esc(p.name)}</b><small>Individual provider · Website shortcut · ${url?'Address saved on this device':'Add the provider’s website address'}</small><input name="provider:${p.id}" type="url" inputmode="url" placeholder="https://provider.example" value="${esc(url)}" aria-label="${esc(p.name)} website address"></div><div class="provider-actions"><button class="btn sm pri" type="button" data-act="provider-open" data-provider="${p.id}" ${url?'':'disabled'}>Open in player</button><button class="btn sm" type="button" data-act="provider-tab" data-provider="${p.id}" ${url?'':'disabled'}>Open site</button></div></div>`;
   }).join('');
 
-  const adapterCount=Object.keys(window.AniMeSourceEngine.adapters).length;
+  const adapterCount=SourceEngine.listAdapters().length;
   const loadedCount=st.sources.filter(x=>x.status==='ok').length;
   const shortcutCount=PROVIDERS.filter(p=>st.providers[p.id]).length;
-  const enginePanel=`<section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3>Central source engine</h3><p class="note">One catalogue and playback decision layer, with each source and provider kept separately manageable.</p></div><span class="tag hi">v${window.AniMeSourceEngine.version}</span></div><div class="stats"><div class="stat"><small>Catalogue sources</small><b>${st.sources.length}</b><span>${loadedCount} loaded successfully</span></div><div class="stat"><small>Source adapters</small><b>${adapterCount}</b><span>Auto-detected by source format</span></div><div class="stat"><small>Provider shortcuts</small><b>${PROVIDERS.length}</b><span>${shortcutCount} addresses configured</span></div></div><p class="note">All provider identities stay separate. Website shortcuts are not represented as automatic stream extractors unless a supported adapter is added.</p></section>`;
+  const enginePanel=`<section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3>Central source engine</h3><p class="note">One catalogue and playback decision layer, with each source and provider kept separately manageable.</p></div><span class="tag hi">v${SourceEngine.version}</span></div><div class="stats"><div class="stat"><small>Catalogue sources</small><b>${st.sources.length}</b><span>${loadedCount} loaded successfully</span></div><div class="stat"><small>Source adapters</small><b>${adapterCount}</b><span>Auto-detected by source format</span></div><div class="stat"><small>Provider shortcuts</small><b>${PROVIDERS.length}</b><span>${shortcutCount} addresses configured</span></div></div><p class="note">All provider identities stay separate. Website shortcuts are not represented as automatic stream extractors unless a supported adapter is added.</p></section>`;
 
   return`${enginePanel}<form id="prefs" class="set">
 <section class="set-sec"><div class="set-n">01</div><div class="set-b"><h3>Watch</h3><p class="note">How the player picks a stream when you press play.</p>
@@ -774,13 +774,13 @@ function srcView(){
 <div class="two">
 <section class="panel"><h3>Display</h3><p class="note">Auto picks the layout for your device. Apps built around this page can set it with ?device=win, ?device=mobile or ?device=tv.</p>
 <div class="chips" style="margin:0">${[['auto','Auto'],['win','Windows'],['mobile','Mobile'],['tv','TV']].map(([v,l])=>`<button class="chip ${(st.device||'auto')===v?'on':''}" data-act="dev" data-d="${v}">${l}${v==='auto'?' ('+DEV+')':''}</button>`).join('')}</div></section>
-<section class="panel"><h3>Quick add</h3><p class="note">Open anime catalogues. Each one loads several pages, so you get hundreds of titles.</p><div class="chips" style="margin:0 0 10px">${PRESETS.map((p,i)=>`<button class="chip" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div>
+<section class="panel"><h3>Quick add</h3><p class="note">Add catalog sources from your chosen providers. Catalog cards keep the source title and original page link.</p><div class="chips" style="margin:0 0 10px">${PRESETS.map((p,i)=>`<button class="chip" data-act="quick" data-i="${i}">${esc(p.name)}</button>`).join('')}</div>
 <form id="dm" class="row" style="margin-top:6px"><input name="c" style="flex:1;min-width:200px" placeholder="Dailymotion channel name or link" aria-label="Dailymotion channel"><button class="btn" type="submit">Add channel</button></form>
 <form id="yt" class="row" style="margin-top:10px"><input name="n" style="flex:1;min-width:120px" placeholder="Channel name (optional)" aria-label="YouTube channel name"><input name="c" style="flex:2;min-width:200px" placeholder="YouTube channel ID (starts with UC) or feed link" aria-label="YouTube channel ID"><button class="btn" type="submit">Add YouTube</button></form></section>
 <section class="panel"><h3>Add a source</h3><form id="add" class="stack"><input name="name" placeholder="Name (optional)" aria-label="Source name"><input name="url" placeholder="Site, feed or JSON address, e.g. donghuazone.com" aria-label="Source address"><textarea name="raw" rows="3" placeholder="…or paste JSON / RSS text here" aria-label="Pasted data"></textarea><div class="row"><button class="btn pri" type="submit">Add source</button><label class="btn">Import file<input id="file" type="file" accept=".json,.xml,.rss,.txt" hidden></label><button class="btn" type="button" data-act="export">Export sources</button></div></form></section>
 <section class="panel"><h3>Streaming provider shortcuts</h3><p class="note">Each provider stays individually configurable. The central engine manages these as website shortcuts today; automatic catalogue or stream extraction is enabled only when a provider has a supported adapter.</p><div class="providers">${providerCards}</div><div class="provider-note">These are website shortcuts, not automatic catalogue or stream extractors. A provider must permit embedding for its pages to play inside the app. No DRM, login, paywall, or access-control bypass is attempted.</div><div class="row" style="margin-top:12px"><button class="btn pri" type="button" data-act="providers-save">Save provider addresses</button></div></section>
 <section class="panel"><h3>Your sources (${st.sources.length})</h3>${bad?`<div class="row" style="margin-bottom:10px"><button class="btn sm" data-act="dropbad">Remove ${bad} failed source${bad>1?'s':''}</button></div>`:''}
-${st.sources.map(s=>`<div class="src"><div><b>${esc(s.name)}</b><small>${esc(s.url||'Pasted or imported data')}</small><small>${esc(s.adapterLabel||window.AniMeSourceEngine.adapterFor(s).label)} adapter</small><small class="${s.status==='error'||s.error?'err':''}">${s.status==='loading'?'Loading…':s.error||`${(s.items||[]).length} items`}</small></div>${s.url?`<button class="btn sm" data-act="reload" data-id="${s.id}">Reload</button>`:''}<button class="btn sm" data-act="del" data-id="${s.id}">Remove</button></div>`).join('')||'<p class="empty">No sources yet.</p>'}</section>
+${st.sources.map(s=>`<div class="src"><div><b>${esc(s.name)}</b><small>${esc(s.url||'Pasted or imported data')}</small><small>${esc(s.adapterLabel||SourceEngine.adapterFor(s).label)} adapter</small><small class="${s.status==='error'||s.error?'err':''}">${s.status==='loading'?'Loading…':s.error||`${(s.items||[]).length} items`}</small></div>${s.url?`<button class="btn sm" data-act="reload" data-id="${s.id}">Reload</button>`:''}<button class="btn sm" data-act="del" data-id="${s.id}">Remove</button></div>`).join('')||'<p class="empty">No sources yet.</p>'}</section>
 <section class="panel"><h3>Watchlist backup</h3><p class="note">Export your watchlist and progress, or import one. Imports accept this app’s file, a JSON list of titles, or a text file with one title per line.</p><div class="row"><button class="btn" data-act="expwl">Export watchlist</button><label class="btn">Import watchlist<input id="wlfile" type="file" accept=".json,.txt,.csv" hidden></label></div></section>
 <section class="panel"><h3>Network</h3><p class="note">Some sites block direct requests from a web page. With auto proxy on, a blocked source is retried in the background through public proxies, and the one that works is remembered. Those proxies can see the addresses you request, so turn it off if you’d rather not use them.</p><div class="chips" style="margin:0 0 12px"><button class="chip ${st.auto!==false?'on':''}" data-act="auto">Auto proxy: ${st.auto!==false?'on':'off'}</button></div><input id="proxy" value="${esc(st.proxy)}" placeholder="Optional proxy of your own: https://your-proxy.example/?url=" aria-label="Proxy prefix"></section>
 </div>`;
@@ -869,14 +869,21 @@ document.addEventListener('click',async ev=>{
   if(a==='fullscr'){const el=$('#pv')||$('#view iframe');if(el&&el.requestFullscreen)el.requestFullscreen().catch(()=>toast('Fullscreen is blocked here.'));return}
 
   if(a==='providers-save'){
-    PROVIDERS.forEach(p=>{const f=document.querySelector(`[name="provider:${p.id}"]`);if(f)st.providers[p.id]=f.value.trim()});
+    try{
+      PROVIDERS.forEach(p=>{
+        const f=document.querySelector(`[name="provider:${p.id}"]`);
+        if(f)st.providers[p.id]=f.value.trim()?SourceEngine.validateWebsite(f.value):'';
+      });
+    }catch(e){return toast(e.message)}
     save();toast('Provider addresses saved on this device.');render();return;
   }
   if(a==='provider-open'||a==='provider-tab'){
     const p=PROVIDERS.find(x=>x.id===b.dataset.provider),u=p&&st.providers[p.id];
-    if(!p||!u||!/^https?:\/\//i.test(u))return toast('Add a valid website address and save it first.');
-    if(a==='provider-tab'){window.open(u,'_blank','noopener,noreferrer');return;}
-    play(u,'provider:'+p.id,p.name,'',{externalProvider:true});return;
+    if(!p||!u)return toast('Add a valid website address and save it first.');
+    let target;
+    try{target=SourceEngine.resolve(p.id,u).src}catch(e){return toast(e.message)}
+    if(a==='provider-tab'){window.open(target,'_blank','noopener,noreferrer');return;}
+    play(target,'provider:'+p.id,p.name,'',{externalProvider:true});return;
   }
 
   if(a==='audio'){document.querySelector('#audio')?.remove();const e=entryFor(b.dataset.k);if(e)playEp(e,b.dataset.ep,b.dataset.a);return}
@@ -910,9 +917,9 @@ document.addEventListener('click',async ev=>{
   if(a==='dev'){st.device=b.dataset.d;save();applyDevice();draw()}
   if(a==='auto'){st.auto=st.auto===false;save();draw()}
   if(a==='quick'){const p=PRESETS[+b.dataset.i];if(st.sources.some(x=>x.name===p.name))return toast('Already added.');
-    const ns={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),items:[],...p};st.sources.push(ns);load(ns)}
+    const ns={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),items:[],...p};if(p.providerId&&st.providers[p.providerId])ns.url=st.providers[p.providerId];st.sources.push(ns);load(ns)}
   if(a==='expwl')download('ani-me-watchlist.json',JSON.stringify({app:'ani-me-log',version:1,watch:Object.values(st.watch).map(w=>({title:w.title,image:w.image||'',tag:w.tag||'Plan to watch'})),seen:st.seen},null,2));
-  if(a==='export')download('sources.json',JSON.stringify(st.sources.filter(x=>x.url).map(({name,url,body,pages,size,gap,adapter})=>({name,url,body,pages,size,gap,adapter})),null,2));
+  if(a==='export')download('sources.json',JSON.stringify(st.sources.filter(x=>x.url).map(({name,url,body,pages,size,gap,adapter,adapterId,providerId})=>({name,url,body,pages,size,gap,adapter,adapterId,providerId})),null,2));
 });
 document.addEventListener('submit',async ev=>{
   if(ev.target.id==='yt'){ev.preventDefault();
@@ -1007,8 +1014,8 @@ const LEGACY=new Set(['https://api.jikan.moe/v4/top/anime','https://api.jikan.mo
       (Array.isArray(list)?list:[]).forEach(x=>{
         if(!x||!/^https?:\/\//i.test(x.url||''))return;
         const have=st.sources.find(s=>s.name===x.name);
-        if(have)Object.assign(have,{url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap});
-        else st.sources.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:x.name||new URL(x.url).hostname,url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap,items:[]});
+        if(have)Object.assign(have,{url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap,adapterId:x.adapterId||have.adapterId||'',adapter:x.adapter||have.adapter||'',providerId:x.providerId||have.providerId||''});
+        else st.sources.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:x.name||new URL(x.url).hostname,url:x.url,body:x.body,pages:x.pages,size:x.size,gap:x.gap,adapterId:x.adapterId||'',adapter:x.adapter||'',providerId:x.providerId||'',items:[]});
       });
     }
   }catch(e){}
@@ -1022,3 +1029,4 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
 </script>
 </body>
 </html>
+
