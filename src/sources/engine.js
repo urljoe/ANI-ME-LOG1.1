@@ -1,0 +1,113 @@
+/* Shared source registry and adapter boundary for Ani-Me Log.
+ * Site-specific catalogue and stream extraction stays disabled until a provider
+ * documents a supported feed/API or authorized playback integration.
+ */
+(function (root) {
+  'use strict';
+
+  const adapters = new Map();
+  const providers = new Map();
+
+  function registerAdapter(adapter) {
+    if (!adapter || !adapter.id || typeof adapter.load !== 'function') {
+      throw new TypeError('A source adapter needs an id and load(source) function.');
+    }
+    if (adapters.has(adapter.id)) {
+      throw new Error('Source adapter already registered: ' + adapter.id);
+    }
+    adapters.set(adapter.id, Object.freeze({ ...adapter }));
+  }
+
+  function registerProvider(provider) {
+    if (!provider || !provider.id || !provider.name) {
+      throw new TypeError('A provider needs an id and name.');
+    }
+    if (providers.has(provider.id)) {
+      throw new Error('Provider already registered: ' + provider.id);
+    }
+    providers.set(provider.id, Object.freeze({
+      id: provider.id,
+      name: provider.name,
+      kind: provider.kind || 'website-shortcut',
+      adapterId: provider.adapterId || 'website-shortcut',
+      capabilities: Object.freeze({
+        catalogue: false,
+        episodes: false,
+        directVideo: false,
+        embed: 'provider-controlled',
+        ...(provider.capabilities || {})
+      })
+    }));
+  }
+
+  function listProviders() {
+    return [...providers.values()].map(provider => ({
+      ...provider,
+      capabilities: { ...provider.capabilities }
+    }));
+  }
+
+  function getProvider(id) {
+    return providers.get(id) || null;
+  }
+
+  function adapterFor(source) {
+    if (source && source.adapterId && adapters.has(source.adapterId)) {
+      return adapters.get(source.adapterId);
+    }
+    for (const adapter of adapters.values()) {
+      if (typeof adapter.matches === 'function' && adapter.matches(source)) return adapter;
+    }
+    return null;
+  }
+
+  async function load(source) {
+    const adapter = adapterFor(source);
+    if (!adapter) throw new Error('No source adapter is registered for this source.');
+    return adapter.load(source);
+  }
+
+  function validateWebsite(value) {
+    let url;
+    try { url = new URL(String(value || '').trim()); } catch (_) {
+      throw new Error('Enter a valid provider website address.');
+    }
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      throw new Error('Provider addresses must use HTTP or HTTPS.');
+    }
+    return url.href;
+  }
+
+  registerAdapter({
+    id: 'website-shortcut',
+    load() {
+      throw new Error('Website shortcuts do not provide automatic catalogue or stream extraction.');
+    },
+    resolve(source) {
+      const url = validateWebsite(source && source.url);
+      return { type: 'page', src: url, providerId: source.providerId || '' };
+    }
+  });
+
+  [
+    ['anikoto', 'AniKoto'],
+    ['animepahe', 'AnimePahe'],
+    ['reanime', 'ReAnime'],
+    ['donghuazone', 'DonghuaZone'],
+    ['donghuanation', 'DonghuaNation'],
+    ['animekhor', 'AnimeKhor'],
+    ['donghuastream', 'DonghuaStream']
+  ].forEach(([id, name]) => registerProvider({
+    id, name, kind: 'website-shortcut', adapterId: 'website-shortcut'
+  }));
+
+  root.AniMeSourceEngine = Object.freeze({
+    registerAdapter,
+    registerProvider,
+    listProviders,
+    getProvider,
+    adapterFor,
+    load,
+    validateWebsite
+  });
+})(window);
