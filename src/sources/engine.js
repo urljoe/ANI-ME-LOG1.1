@@ -68,6 +68,64 @@
     return adapter.load(source);
   }
 
+  function mergeCatalog(sources, normalizeTitle, numericValue) {
+    const m = new Map(), keys = new Map();
+    const addKey = (key, entry) => {
+      if (!key) return;
+      const old = keys.get(key);
+      if (old && old !== entry) return old;
+      keys.set(key, entry);
+      m.set(entry.k, entry);
+      return entry;
+    };
+
+    (Array.isArray(sources) ? sources : []).forEach(source => (source.items || []).forEach((item, index) => {
+      const names = [item.title, ...(item.aliases || [])].filter(Boolean);
+      const normalizedNames = [...new Set(names.map(normalizeTitle).filter(key => key.length >= 4))];
+      const found = normalizedNames.map(key => keys.get(key)).find(Boolean);
+      const primary = normalizeTitle(item.title);
+      if (!primary) return;
+
+      let entry = found;
+      if (!entry) {
+        entry = {
+          k: primary, title: item.title, image: item.image, ep: item.ep, date: item.date || 0,
+          ord: index, desc: '', tags: [], total: 0, score: 0, aliases: [], from: []
+        };
+        m.set(entry.k, entry);
+      } else if (item.title && item.title.length > entry.title.length && (!entry.title || entry.title.length < 4)) {
+        entry.title = item.title;
+      }
+
+      entry.image = entry.image || item.image;
+      if (numericValue(item.ep) > numericValue(entry.ep)) entry.ep = item.ep;
+      entry.date = Math.max(entry.date, item.date || 0);
+      entry.ord = Math.min(entry.ord, index);
+      if ((item.desc || '').length > entry.desc.length) entry.desc = item.desc;
+      (item.tags || []).forEach(tag => { if (tag && !entry.tags.includes(tag)) entry.tags.push(tag); });
+      entry.total = Math.max(entry.total, item.total || 0);
+      entry.score = Math.max(entry.score, item.score || 0);
+
+      names.forEach(name => {
+        if (name && normalizeTitle(name) !== normalizeTitle(entry.title) && !entry.aliases.includes(name)) {
+          entry.aliases.push(name);
+        }
+        addKey(normalizeTitle(name), entry);
+      });
+
+      const raw = item.raw || item.title, video = item.video || '';
+      if (!entry.from.some(record =>
+        record.src === source.name && record.raw === raw && record.ep === item.ep &&
+        record.link === item.link && record.video === video
+      )) {
+        entry.from.push({ src: source.name, raw, ep: item.ep, link: item.link, video, sub: item.sub || [] });
+      }
+      addKey(primary, entry);
+    }));
+
+    return { map: m, list: [...m.values()].sort((a, b) => a.title.localeCompare(b.title)) };
+  }
+
   function validateWebsite(value) {
     let url;
     try { url = new URL(String(value || '').trim()); } catch (_) {
@@ -118,6 +176,7 @@
     adapterFor,
     resolve,
     load,
+    mergeCatalog,
     validateWebsite
   });
 })(window);
