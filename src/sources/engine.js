@@ -65,7 +65,20 @@
     const adapter = adapterFor(source);
     if (!adapter) throw new Error('No source adapter is registered for this source.');
     if (typeof adapter.load !== 'function') throw new Error('This adapter does not load catalogue data.');
-    return adapter.load(source);
+    const items = await adapter.load(source);
+    if (!Array.isArray(items)) throw new TypeError('A source adapter must return an array of normalized title records.');
+    return items;
+  }
+
+  function resolveSource(source) {
+    const adapter = adapterFor(source);
+    if (adapter && adapter.id !== 'website-shortcut' && typeof adapter.resolve === 'function') {
+      return adapter.resolve(source);
+    }
+    const video = source && source.video || '';
+    const link = source && source.link || '';
+    const url = video || link;
+    return url ? { type: video ? 'media' : 'page', src: url, fallbackUrl: link, attribution: source && source.src || '' } : null;
   }
 
   function mergeCatalog(sources, normalizeTitle, numericValue) {
@@ -118,7 +131,7 @@
         record.src === source.name && record.raw === raw && record.ep === item.ep &&
         record.link === item.link && record.video === video
       )) {
-        entry.from.push({ src: source.name, raw, ep: item.ep, link: item.link, video, sub: item.sub || [] });
+        entry.from.push({ src: source.name, raw, ep: item.ep, link: item.link, video, sub: item.sub || [], adapterId: source.adapterId || '' });
       }
       addKey(primary, entry);
     }));
@@ -175,6 +188,7 @@
     getProvider,
     adapterFor,
     resolve,
+    resolveSource,
     load,
     mergeCatalog,
     validateWebsite
