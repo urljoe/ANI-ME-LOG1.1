@@ -9,8 +9,8 @@
   const providers = new Map();
 
   function registerAdapter(adapter) {
-    if (!adapter || !adapter.id || typeof adapter.load !== 'function') {
-      throw new TypeError('A source adapter needs an id and load(source) function.');
+    if (!adapter || !adapter.id || (typeof adapter.load !== 'function' && typeof adapter.resolve !== 'function')) {
+      throw new TypeError('A source adapter needs an id and a load(source) or resolve(source) function.');
     }
     if (adapters.has(adapter.id)) {
       throw new Error('Source adapter already registered: ' + adapter.id);
@@ -64,6 +64,7 @@
   async function load(source) {
     const adapter = adapterFor(source);
     if (!adapter) throw new Error('No source adapter is registered for this source.');
+    if (typeof adapter.load !== 'function') throw new Error('This adapter does not load catalogue data.');
     return adapter.load(source);
   }
 
@@ -76,6 +77,14 @@
       throw new Error('Provider addresses must use HTTP or HTTPS.');
     }
     return url.href;
+  }
+
+  function resolve(providerId, value) {
+    const provider = getProvider(providerId);
+    if (!provider) throw new Error('Unknown provider: ' + providerId);
+    const adapter = adapters.get(provider.adapterId);
+    if (!adapter || typeof adapter.resolve !== 'function') throw new Error('No playback adapter is registered for this provider.');
+    return adapter.resolve({ url: validateWebsite(value), providerId: provider.id });
   }
 
   registerAdapter({
@@ -107,6 +116,7 @@
     listProviders,
     getProvider,
     adapterFor,
+    resolve,
     load,
     validateWebsite
   });
