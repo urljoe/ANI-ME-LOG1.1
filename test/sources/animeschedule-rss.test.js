@@ -72,7 +72,7 @@ test('merges duplicate titles while keeping each feed label and adapter provenan
   const catalog = engine.mergeCatalog(sources, value => String(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(), value => Number.parseFloat(value) || 0);
   assert.equal(catalog.list.length, 1);
   assert.equal(catalog.list[0].from.length, 2);
-  assert.deepEqual(catalog.list[0].from.map(item => item.src), ['AnimeSchedule · Sub', 'AnimeSchedule · Dub']);
+  assert.deepEqual(Array.from(catalog.list[0].from, item => item.src), ['AnimeSchedule · Sub', 'AnimeSchedule · Dub']);
   assert.equal(catalog.list[0].from[0].adapterId, 'animeschedule-rss');
   assert.equal(catalog.list[0].from[1].link, 'https://animeschedule.net/entry/example-dub');
 });
