@@ -96,12 +96,16 @@
   function resolveSource(source) {
     const adapter = adapterFor(source);
     if (adapter && adapter.id !== 'website-shortcut' && typeof adapter.resolve === 'function') {
-      return adapter.resolve(source);
+      const resolved = adapter.resolve(source);
+      if (!resolved) return null;
+      const type = resolved.type || 'page';
+      return { ...resolved, type, mode: resolved.mode || (type === 'media' ? 'direct-media' : type === 'hls' ? 'adaptive-media' : type === 'frame' ? 'provider-embed' : 'provider-page') };
     }
     const video = source && source.video || '';
     const link = source && source.link || '';
     const url = video || link;
-    return url ? { type: video ? 'media' : 'page', src: url, fallbackUrl: link, attribution: source && source.src || '' } : null;
+    const type = video ? 'media' : 'page';
+    return url ? { type, mode: video ? 'direct-media' : 'provider-page', src: url, fallbackUrl: link, attribution: source && source.src || '' } : null;
   }
 
   function mergeCatalog(sources, normalizeTitle, numericValue) {
@@ -189,7 +193,7 @@
     },
     resolve(source) {
       const url = validateWebsite(source && source.url);
-      return { type: 'page', src: url, providerId: source.providerId || '' };
+      return { type: 'page', mode: 'provider-page', src: url, providerId: source.providerId || '' };
     }
   });
 
