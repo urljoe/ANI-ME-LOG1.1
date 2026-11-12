@@ -20,3 +20,10 @@ Deploy the web app as usual. The Android app wraps the same `index.html` using C
 - `npx cap add android` (first Android project setup)
 - `npm run sync`
 - `npx cap open android`
+
+## Web app version updates
+The web app checks `version.json` and shows an in-app notice when the published version is newer than the version installed in the current page. The user can apply it immediately or dismiss it until later. “Sync sources” refreshes title feeds; it does not update the app itself.
+
+For each web release, update the version in `version.json`, the `app-version` meta tag in `index.html`, and `package.json`; give the service worker cache a new name in `sw.js`. The service worker waits until the user selects “Update now” before activating a waiting app shell.
+
+This notice is for the GitHub Pages web app and its installable PWA. A packaged Android APK does not get replaced by reloading its bundled webpage; Android update delivery needs a separate release/distribution path.
