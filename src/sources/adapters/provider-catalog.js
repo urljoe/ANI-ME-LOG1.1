@@ -76,7 +76,7 @@
     const out=[],seen=new Set();
     lists.forEach(list=>(Array.isArray(list)?list:[]).forEach(x=>{
       const title=x?.title||x?.name,link=x?.url||x?.href||x?.link;
-      const r=item(title,link,x?.image||x?.poster||x?.coverImage);
+      const r=item(title,validHttps(link,'https://justanime.to/'),x?.image||x?.poster||x?.coverImage);
       if(!r)return;const k=key(r.title);if(seen.has(k))return;seen.add(k);out.push(r);
     }));
     return out.slice(0,80);
