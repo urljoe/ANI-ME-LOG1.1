@@ -1,14 +1,17 @@
 [
   {
     "name": "AnimeSchedule · Sub",
-    "url": "https://animeschedule.net/subrss.xml"
+    "url": "https://animeschedule.net/subrss.xml",
+    "adapterId": "animeschedule-rss"
   },
   {
     "name": "AnimeSchedule · Dub",
-    "url": "https://animeschedule.net/dubrss.xml"
+    "url": "https://animeschedule.net/dubrss.xml",
+    "adapterId": "animeschedule-rss"
   },
   {
     "name": "AnimeSchedule · Raw",
-    "url": "https://animeschedule.net/jpnrss.xml"
+    "url": "https://animeschedule.net/jpnrss.xml",
+    "adapterId": "animeschedule-rss"
   }
 ]
