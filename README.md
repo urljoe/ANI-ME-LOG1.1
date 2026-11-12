@@ -38,3 +38,15 @@ The app shell, icon, manifest and source-list configuration are cached for offli
 ## Playback notes
 
 Direct media URLs ending in `.mp4`, `.webm`, `.ogg` or `.m3u8` use the app's plain video surface and standard browser controls. YouTube, Dailymotion, Archive.org, Rumble and ordinary web pages continue to use their provider/page embed paths as appropriate. A site that blocks embedding or direct access must be opened at its original source.
+
+## Changelog
+
+- Catalogue merger: titles from different providers are grouped by canonical and alternate names (English, romaji, synonyms), and every provider record is kept.
+- Title pages list each provider link with its episode number. Direct media URLs (when a provider supplies one) play in the native player; other links use the embed or open-on-site path.
+- Alternate playback chips use the direct media URL when one exists.
+
+## Changelog
+
+- Catalogue merger: titles from different providers are grouped by canonical and alternate names (English, romaji, synonyms), and every provider record is kept.
+- Title pages list each provider link with its episode number. Direct media URLs (when a provider supplies one) play in the native player; other links use the embed or open-on-site path.
+- Alternate playback chips use the direct media URL when one exists.

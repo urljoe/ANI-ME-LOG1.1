@@ -215,17 +215,35 @@ function clean(t){
   t=t.replace(/\s*\[[^\]]*\]/g,'').replace(/\s*[–-]\s*(english|indo)[^]*$/i,'').trim();
   return{title:t||String(t),ep};
 }
+function titleAliases(o){
+  const out=new Set(), add=v=>{if(typeof v==='string'&&v.trim())out.add(v.trim())};
+  if(!o||typeof o!=='object')return[];
+  const t=o.title;
+  if(t&&typeof t==='object'){add(t.english);add(t.romaji);add(t.native);add(t.userPreferred)}
+  ['title_english','title_japanese','english','romaji','canonicalTitle'].forEach(k=>add(o[k]));
+  ['titles','synonyms','abbreviatedTitles'].forEach(k=>{
+    const a=o[k];if(Array.isArray(a))a.forEach(v=>add(typeof v==='string'?v:(v&& (v.title||v.name))));
+  });
+  const a=o.attributes;
+  if(a&&typeof a==='object'){
+    add(a.canonicalTitle);
+    [a.titles,a.abbreviatedTitles].forEach(xs=>{if(xs&&typeof xs==='object')Object.values(xs).forEach(add)});
+  }
+  if(Array.isArray(o.title))o.title.forEach(v=>add(typeof v==='string'?v:v&&v.title));
+  return[...out];
+}
 function mapItem(o){
-  if(typeof o==='string')return{title:o.trim(),raw:o.trim()};
+  if(typeof o==='string')return{title:o.trim(),raw:o.trim(),aliases:[]};
   if(!o||typeof o!=='object')return null;
   const raw=first(o,['title','name','title.english','title.romaji','title_english','attributes.canonicalTitle']);
   if(!raw)return null;
   const c=clean(raw);
   let sc=num(first(o,['score','averageScore','attributes.averageRating']));if(sc>10)sc/=10;
-  return{title:c.title,raw:String(raw),
+  const video=first(o,['videoUrl','video_url','streamUrl','stream_url','playUrl','play_url','embedUrl','embed_url','episodeUrl','episode_url','attributes.videoUrl','attributes.streamUrl']);
+  return{title:c.title,raw:String(raw),aliases:titleAliases(o),
     image:first(o,['image','img','poster','cover','thumbnail','thumbnail_480_url','images.jpg.image_url','coverImage.large','attributes.posterImage.small'])||(o.identifier?'https://archive.org/services/img/'+o.identifier:''),
     link:first(o,['url','siteUrl','link','href'])||(o.attributes&&o.attributes.slug?'https://kitsu.io/anime/'+o.attributes.slug:'')||(o.identifier?'https://archive.org/details/'+o.identifier:''),
-    ep:c.ep||first(o,['episode','ep','latest_episode']),
+    video:typeof video==='string'?video:'',ep:c.ep||first(o,['episode','ep','latest_episode']),
     date:toMs(first(o,['date','published','updated_at','aired.from','attributes.startDate','created_at','created_time'])),
     desc:plain(first(o,['synopsis','description','summary','attributes.synopsis'])),
     tags:(Array.isArray(o.genres)?o.genres.map(g=>typeof g==='string'?g:g&&g.name).filter(Boolean):[]).slice(0,6),
@@ -334,18 +352,26 @@ async function runAll(list){
 }
 
 /* merge every source into one list */
+/* Merge provider records by canonical and alternate titles while retaining every source link. */
 function build(){
-  const m=new Map();
+  const m=new Map(),keys=new Map();
+  const addKey=(key,e)=>{if(!key)return;const old=keys.get(key);if(old&&old!==e)return old;keys.set(key,e);m.set(e.k,e);return e};
   st.sources.forEach(s=>(s.items||[]).forEach((i,idx)=>{
-    const k=norm(i.title);if(!k)return;
-    let e=m.get(k);
-    if(!e){e={k,title:i.title,image:i.image,ep:i.ep,date:i.date||0,ord:idx,desc:'',tags:[],total:0,score:0,from:[]};m.set(k,e)}
-    else{e.image=e.image||i.image;if(num(i.ep)>num(e.ep))e.ep=i.ep;e.date=Math.max(e.date,i.date||0);e.ord=Math.min(e.ord,idx)}
+    const names=[i.title,...(i.aliases||[])].filter(Boolean),norms=[...new Set(names.map(norm).filter(k=>k.length>=4))];
+    const found=norms.map(k=>keys.get(k)).find(Boolean);
+    const primary=norm(i.title);if(!primary)return;
+    let e=found;
+    if(!e){e={k:primary,title:i.title,image:i.image,ep:i.ep,date:i.date||0,ord:idx,desc:'',tags:[],total:0,score:0,aliases:[],from:[]};m.set(e.k,e)}
+    else if(i.title&&i.title.length>e.title.length&&(!e.title||e.title.length<4))e.title=i.title;
+    e.image=e.image||i.image;if(num(i.ep)>num(e.ep))e.ep=i.ep;e.date=Math.max(e.date,i.date||0);e.ord=Math.min(e.ord,idx);
     if((i.desc||'').length>e.desc.length)e.desc=i.desc;
-    (i.tags||[]).forEach(t=>{if(!e.tags.includes(t))e.tags.push(t)});
+    (i.tags||[]).forEach(t=>{if(t&&!e.tags.includes(t))e.tags.push(t)});
     e.total=Math.max(e.total,i.total||0);e.score=Math.max(e.score,i.score||0);
-    const raw=i.raw||i.title;
-    if(!e.from.some(f=>f.src===s.name&&f.raw===raw&&f.link===i.link))e.from.push({src:s.name,raw,ep:i.ep,link:i.link,sub:i.sub||[]});
+    names.forEach(n=>{if(n&&norm(n)!==norm(e.title)&&!e.aliases.includes(n))e.aliases.push(n);addKey(norm(n),e)});
+    const raw=i.raw||i.title,video=i.video||'';
+    if(!e.from.some(f=>f.src===s.name&&f.raw===raw&&f.ep===i.ep&&f.link===i.link&&f.video===video))
+      e.from.push({src:s.name,raw,ep:i.ep,link:i.link,video,sub:i.sub||[]});
+    addKey(primary,e);
   }));
   return{map:m,list:[...m.values()].sort((a,b)=>a.title.localeCompare(b.title))};
 }
@@ -401,7 +427,7 @@ function wview(){
 <div class="vid">${frame}</div>
 ${x&&x.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site”.</p>':''}
 <div class="row" style="justify-content:space-between;margin:10px 0 14px"><button class="btn" data-act="ep" data-ep="${esc(pe)}" ${pe?'':'disabled'}>‹ Previous episode</button><b>${esc(p.title||'')}${p.ep?' · Episode '+esc(p.ep):''}</b><button class="btn" data-act="ep" data-ep="${esc(ne)}" ${ne?'':'disabled'}>Next episode ›</button></div>
-${p.alts.length>1?`<details class="play-sources"><summary>More playback sources</summary><div class="chips">${p.alts.map(f=>`<button class="chip ${f.link===p.url?'on':''}" data-act="srv" data-u="${esc(f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div></details>`:''}
+${p.alts.length>1?`<details class="play-sources"><summary>More playback sources</summary><div class="chips">${p.alts.map(f=>`<button class="chip ${(f.video||f.link)===p.url?'on':''}" data-act="srv" data-u="${esc(f.video||f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div></details>`:''}
 <p class="note"><a href="${safe(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Open original source</a></p></div>
 <aside><div class="panel"><div class="row" style="justify-content:flex-end;margin-bottom:12px"><button class="btn sm" data-act="wlist">${WLIST?'Grid view':'List view'}</button><button class="btn sm" data-act="wsort">${WSORT==='asc'?'Oldest first':'Newest first'}</button></div>
 ${have.length?(WLIST?`<div class="eprs">${order.map(rowb).join('')}</div>`:`<div class="epc">${order.map(circ).join('')}</div>`):'<p class="note">No episode numbers from your sources for this title.</p>'}</div>
@@ -413,7 +439,7 @@ async function play(u,k,title,ep){
   const en=entryFor(k);
   if(en){st.hist=[snap(en),...st.hist.filter(h=>h.k!==en.k)].slice(0,100);save();CUR=k}
   const e=embedFor(u);
-  const alts=((en&&en.from)||[]).filter(f=>f.link&&(!ep||String(f.ep)===String(ep))).slice(0,12);
+  const alts=((en&&en.from)||[]).filter(f=>(f.video||f.link)&&(!ep||String(f.ep)===String(ep))).slice(0,12);
   PLAY={k,title,ep,url:u,e,alts,msg:'This link can’t be played inside the app. Use “Open on its own site”.'};
   if(view!=='watch'&&view!=='title')prev=view;
   view='watch';draw();scrollTo(0,0);
@@ -434,9 +460,9 @@ function markSeen(k,ep){
 }
 function playEp(e,ep){
   const l=epsOf(e).get(String(ep))||[];
-  const f=l.find(x=>x.link&&embedFor(x.link).type!=='page')||l.find(x=>x.link);
+  const f=l.find(x=>(x.video||x.link)&&embedFor(x.video||x.link).type!=='page')||l.find(x=>x.video||x.link);
   if(!f)return toast('No link for that episode yet.');
-  markSeen(e.k,String(ep));play(f.link,e.k,e.title,String(ep));
+  markSeen(e.k,String(ep));play(f.video||f.link,e.k,e.title,String(ep));
 }
 
 /* rendering */
@@ -464,7 +490,7 @@ function tview(e,L){
   const nums=new Set(have);for(let i=1;i<=n;i++)nums.add(String(i));
   const list=[...nums].sort((a,b)=>num(a)-num(b));
   const nxt=!have.length?'':!sn.last?have[0]:(have.find(x=>num(x)>num(sn.last.ep))||String(sn.last.ep));
-  const sb=[...new Set((e.from||[]).flatMap(f=>f.sub||[]))],noep=(e.from||[]).filter(f=>!f.ep&&f.link);
+  const sb=[...new Set((e.from||[]).flatMap(f=>f.sub||[]))],sourceRecords=(e.from||[]).filter(f=>f.video||f.link);
   const r=recs(e,L);
   return`<div class="page"><button class="btn sm" data-act="back" style="margin-bottom:18px">‹ Back</button>
 <div class="sy">${e.image?`<img src="${safe(e.image)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}
@@ -476,7 +502,7 @@ ${w?`<div class="chips" style="margin:14px 0 0">${['Plan to watch','Watching','C
 <p class="note" style="margin-top:12px">${sn.last?`Last watched · Episode ${esc(sn.last.ep)} · ${ago(sn.last.at)} <button class="chip" data-act="clrp" data-k="${esc(e.k)}">Clear progress</button>`:'Nothing watched yet.'}</p></div></div>
 ${list.length?`<h3 style="margin-bottom:14px">Episodes</h3><div class="eps">${list.map(x=>{const has=epm.has(x),seen=sn.eps[x],f=has?epm.get(x):[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');
 return`<button class="ep ${seen?'seen':''} ${has?'':'off'}" ${has?`data-act="ep" data-ep="${esc(x)}"`:'disabled'} title="${esc(has?f.map(y=>y.src).join(', '):'No link yet')}">${esc(x)}<small>${esc(lb||(has?'':'—'))}</small></button>`}).join('')}</div>`:''}
-${noep.length?`<h3 style="margin-bottom:10px">Sources</h3><ul class="fl">${noep.map(f=>`<li><div><b>${esc(f.src)}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(f.link)}" data-k="${esc(e.k)}">Play</button><a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Open</a></li>`).join('')}</ul>`:''}
+${sourceRecords.length?`<h3 style="margin-bottom:10px">Provider links and episodes</h3><p class="note">All matching provider records are kept here. Episode links stay grouped with their episode numbers.</p><ul class="fl">${sourceRecords.map(f=>{const u=f.video||f.link;return`<li><div><b>${esc(f.src)}${f.ep?' · Episode '+esc(f.ep):' · Catalogue'}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}${f.video?' · Direct media':''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(u)}" data-k="${esc(e.k)}" ${f.ep?`data-ep="${esc(f.ep)}"`:''}>Play</button>${f.link&&f.link!==u?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Provider</a>`:`<a class="btn sm" href="${safe(u)}" target="_blank" rel="noopener noreferrer">Open</a>`}</li>`}).join('')}</ul>`:''}
 ${r.length?rail('You might also like','library',r):''}</div>`;
 }
 
@@ -592,7 +618,7 @@ document.addEventListener('click',async ev=>{
   if(a==='ep'){const e=entryFor(CUR);if(e)playEp(e,b.dataset.ep)}
   if(a==='clrp'){delete st.seen[b.dataset.k];save();draw()}
   if(a==='playbest'){const e=entryFor(b.dataset.k);if(!e)return;const h=[...epsOf(e).keys()].sort((x,y)=>num(y)-num(x))[0];if(h)playEp(e,h);else openTitle(e.k)}
-  if(a==='pl'){const e=entryFor(b.dataset.k);play(b.dataset.u,b.dataset.k,e?e.title:'',''); }
+  if(a==='pl'){const e=entryFor(b.dataset.k);if(b.dataset.ep)markSeen(b.dataset.k,b.dataset.ep);play(b.dataset.u,b.dataset.k,e?e.title:'',b.dataset.ep||''); }
   if(a==='srv')play(b.dataset.u,PLAY.k,PLAY.title,PLAY.ep);
   if(a==='share'){try{await navigator.clipboard.writeText(location.href.split('#')[0]);toast('Link copied.')}catch(e){toast('Copy the address from your browser.')}}
   if(a==='wsort'){WSORT=WSORT==='asc'?'desc':'asc';draw()}
