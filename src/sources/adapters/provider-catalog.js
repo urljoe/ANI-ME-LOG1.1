@@ -75,8 +75,8 @@
     const lists=[rootData.trending,rootData.popular,rootData.airing,rootData.latestEpisode];
     const out=[],seen=new Set();
     lists.forEach(list=>(Array.isArray(list)?list:[]).forEach(x=>{
-      const title=x?.title||x?.name,link=x?.url||x?.href||x?.link;
-      const r=item(title,validHttps(link,base),x?.image||x?.poster||x?.coverImage);
+      const title=x?.title||x?.name,ref=x?.url||x?.href||x?.link||((x?.id||x?._id||x?.anilistId)?'/anime/'+(x.id||x._id||x.anilistId):'');
+      const r=item(title,validHttps(ref,base),x?.image||x?.poster||x?.coverImage||x?.bannerImage);
       if(!r)return;const k=key(r.title);if(seen.has(k))return;seen.add(k);out.push(r);
     }));
     return out.slice(0,80);
