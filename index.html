@@ -226,9 +226,28 @@ details.play-sources summary{cursor:pointer;color:var(--mut)}
 .aud b{display:block;font:700 32px var(--disp);color:var(--amber)}
 .aud small{color:var(--mut);text-transform:none;letter-spacing:0;font-size:13px}
 @media(max-width:700px){.top{padding:10px 14px}.page{padding:14px}.hero{margin:12px 14px;padding:22px;min-height:300px}.hero>img{display:none}.hero h2{font-size:38px}.ptitle{padding:18px 14px 4px}.ptitle h1{font-size:30px}.search{display:none}.rows{padding:0 14px}.dl-row{grid-template-columns:1fr}.set-sec{grid-template-columns:1fr}.sy>img{width:150px}.sy h1{font-size:38px}.nav{padding:8px 10px;font-size:13px}}
+
+/* Quiet wilted petals and a soft poster response keep the background alive without competing with titles. */
+.petal-field{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+#view,.ptitle,footer{position:relative;z-index:1}
+.petal-field i{position:absolute;top:-8vh;width:13px;height:22px;border-radius:90% 0 90% 0;background:linear-gradient(145deg,#d98c8f,#77585f);opacity:.16;filter:blur(.25px);transform:rotate(38deg);animation:petal-drift 38s linear infinite}
+.petal-field i:nth-child(1){left:12%;animation-duration:43s;animation-delay:-19s}
+.petal-field i:nth-child(2){left:34%;width:10px;height:17px;animation-duration:37s;animation-delay:-8s;opacity:.12}
+.petal-field i:nth-child(3){left:69%;width:15px;height:24px;animation-duration:48s;animation-delay:-30s;opacity:.14}
+.petal-field i:nth-child(4){left:88%;width:9px;height:16px;animation-duration:40s;animation-delay:-24s;opacity:.11}
+@keyframes petal-drift{0%{translate:0 -8vh;rotate:0deg}35%{translate:22px 34vh;rotate:130deg}70%{translate:-16px 72vh;rotate:255deg}100%{translate:8px 112vh;rotate:390deg}}
+.card{isolation:isolate}
+.card::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 58%,#f4c4c72e,transparent 66%)}
+.card.is-opening::after{animation:card-bloom .34s ease-out both}
+.card.is-opening .poster img{animation:poster-bloom .34s ease-out both}
+@keyframes card-bloom{0%{opacity:0}35%{opacity:1}100%{opacity:0}}
+@keyframes poster-bloom{0%{transform:scale(1);filter:saturate(1)}45%{transform:scale(1.035);filter:saturate(1.15)}100%{transform:scale(1);filter:saturate(1)}}
+@media(max-width:620px){.petal-field i:nth-child(n+4){display:none}}
+@media(prefers-reduced-motion:reduce){.petal-field i{animation:none;top:56%;opacity:.07}.card.is-opening::after,.card.is-opening .poster img{animation:none}}
 </style>
 </head>
 <body>
+<div class="petal-field" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <nav class="top">
   <div class="brand"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C5 6 3 13 8 21c5-2 9-9 4-19z" fill="#6fd3b0"/><path d="M12 2c3 6 1 13-4 19" fill="none" stroke="#f2b35c" stroke-width="1.2"/></svg><div>Ani-Me Log<small>beta</small></div></div>
   <div class="tools"><input class="search" id="q" type="search" placeholder="Find a title" aria-label="Search titles"><button class="btn sm" data-act="refresh">Sync</button></div>
@@ -879,7 +898,7 @@ document.addEventListener('click',async ev=>{
   const seekZone=ev.target.closest('.seek-zone');if(seekZone){seekByZone(seekZone);return}
   const n=ev.target.closest('.nav');if(n){view=n.dataset.v;PLAY=null;LIM=120;draw();scrollTo(0,0);return}
   const o=ev.target.closest('[data-open]');
-  if(o&&!ev.target.closest('.bmc')){openTitle(o.dataset.open);return}
+  if(o&&!ev.target.closest('.bmc')){const card=o.closest('.card');if(card){card.classList.add('is-opening');setTimeout(()=>openTitle(o.dataset.open),matchMedia('(prefers-reduced-motion: reduce)').matches?0:130)}else openTitle(o.dataset.open);return}
   const b=ev.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,s=st.sources.find(x=>x.id===b.dataset.id);
   if(a==='fit'){FIT=FIT==='fit'?'fill':'fit';draw();return}
