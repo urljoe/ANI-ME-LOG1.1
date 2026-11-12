@@ -30,3 +30,6 @@ The source engine is being introduced incrementally so the GitHub Pages app and 
 - `sources.json` contains the configured AnimeSchedule RSS feeds.
 
 AnimeSchedule Sub, Dub, and Raw feeds now have a named RSS adapter using the existing timeout/proxy handling and parser. It retains each feed's source label and original item link. These are schedule/title entries, not direct video streams; playback falls back to the original provider page when an entry has no direct media URL. The seven other providers remain Settings shortcuts until a supported integration is verified. The adapter interface and capability checklist are documented in [`src/sources/README.md`](src/sources/README.md).
+
+## Source adapter checks
+With Node.js 18 or newer installed, run `npm test` to execute the offline adapter checks. They use sample feed records and make no network requests; live RSS availability must be checked separately in the app.
