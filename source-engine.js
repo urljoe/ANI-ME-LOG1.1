@@ -28,11 +28,11 @@
     let url;
     try { url = new URL(source && source.url || ''); } catch (_) { return 'custom-data'; }
     const host = url.hostname.toLowerCase();
-    if (/graphql\\.anilist\\.co$/.test(host)) return 'anilist-graphql';
-    if (/api\\.jikan\\.moe$/.test(host)) return 'jikan-rest';
-    if (/kitsu\\.io$/.test(host)) return 'kitsu-rest';
-    if (/archive\\.org$/.test(host)) return 'internet-archive';
-    if (/\\.xml$|rss|feed|\\.rss$/i.test(url.pathname + url.search)) return 'rss-json';
+    if (/graphql\.anilist\.co$/.test(host)) return 'anilist-graphql';
+    if (/api\.jikan\.moe$/.test(host)) return 'jikan-rest';
+    if (/kitsu\.io$/.test(host)) return 'kitsu-rest';
+    if (/archive\.org$/.test(host)) return 'internet-archive';
+    if (/\.xml$|rss|feed|\.rss$/i.test(url.pathname + url.search)) return 'rss-json';
     if (url.pathname === '/' && !url.search) return 'website-feed';
     return 'generic-json';
   }
