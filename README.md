@@ -50,3 +50,5 @@ Direct media URLs ending in `.mp4`, `.webm`, `.ogg` or `.m3u8` use the app's pla
 - Catalogue merger: titles from different providers are grouped by canonical and alternate names (English, romaji, synonyms), and every provider record is kept.
 - Title pages list each provider link with its episode number. Direct media URLs (when a provider supplies one) play in the native player; other links use the embed or open-on-site path.
 - Alternate playback chips use the direct media URL when one exists.
+- Episode numbers are normalised, so "01", "1" and "1.0" are treated as the same episode.
+- Every episode number in the grid is playable. Episodes with a direct link play that link. Episodes no provider lists open the title's source site inside the player, with a note saying so.

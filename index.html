@@ -378,7 +378,8 @@ function build(){
 const snap=e=>({k:e.k,title:e.title,image:e.image,ep:e.ep,from:(e.from||[]).slice(0,12)});
 const wl=k=>!!st.watch[k];
 const entryFor=k=>LIB.map.get(k)||st.watch[k]||st.hist.find(h=>h.k===k);
-const epsOf=e=>{const m=new Map();(e.from||[]).forEach(f=>{if(!f.ep)return;const k=String(f.ep);if(!m.has(k))m.set(k,[]);m.get(k).push(f)});return m};
+const epKey=x=>{const m=String(x??'').trim().match(/^(\d+(?:\.\d+)?)/);return m?String(parseFloat(m[1])):''};
+const epsOf=e=>{const m=new Map();(e.from||[]).forEach(f=>{const k=epKey(f.ep);if(!k)return;if(!m.has(k))m.set(k,[]);m.get(k).push(f)});return m};
 
 /* embeds and playback */
 function embedFor(u){
@@ -425,7 +426,7 @@ function wview(){
   return`<div class="page"><div class="wt"><div>
 <div class="row" style="justify-content:space-between;margin-bottom:14px"><button class="btn sm" data-act="back">‹ Back</button><div class="row">${bmBtn(p.k)}<button class="btn sm" data-act="share">Share</button></div></div>
 <div class="vid">${frame}</div>
-${x&&x.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site”.</p>':''}
+${p.note?`<p class="note">${esc(p.note)}</p>`:''}${x&&x.type==='page'?'<p class="note">Showing the site’s own page inside the app. If this stays blank, that site doesn’t allow it, so use “Open on its own site”.</p>':''}
 <div class="row" style="justify-content:space-between;margin:10px 0 14px"><button class="btn" data-act="ep" data-ep="${esc(pe)}" ${pe?'':'disabled'}>‹ Previous episode</button><b>${esc(p.title||'')}${p.ep?' · Episode '+esc(p.ep):''}</b><button class="btn" data-act="ep" data-ep="${esc(ne)}" ${ne?'':'disabled'}>Next episode ›</button></div>
 ${p.alts.length>1?`<details class="play-sources"><summary>More playback sources</summary><div class="chips">${p.alts.map(f=>`<button class="chip ${(f.video||f.link)===p.url?'on':''}" data-act="srv" data-u="${esc(f.video||f.link)}">${esc(f.src)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}</button>`).join('')}</div></details>`:''}
 <p class="note"><a href="${safe(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--mut)">Open original source</a></p></div>
@@ -459,10 +460,15 @@ function markSeen(k,ep){
   save();
 }
 function playEp(e,ep){
-  const l=epsOf(e).get(String(ep))||[];
+  const key=epKey(ep)||String(ep);
+  const l=epsOf(e).get(key)||[];
   const f=l.find(x=>(x.video||x.link)&&embedFor(x.video||x.link).type!=='page')||l.find(x=>x.video||x.link);
-  if(!f)return toast('No link for that episode yet.');
-  markSeen(e.k,String(ep));play(f.video||f.link,e.k,e.title,String(ep));
+  if(f){markSeen(e.k,key);play(f.video||f.link,e.k,e.title,key);return}
+  // No provider lists this episode: wrap the source site's own page for the title.
+  const s=(e.from||[]).find(x=>x.link)||(e.from||[]).find(x=>x.video);
+  if(!s)return toast('No source links for this title yet.');
+  play(s.link||s.video,e.k,e.title,key);
+  if(PLAY){PLAY.note=`Episode ${key} isn’t listed by your sources, so this shows ${s.src}’s page for the title. Pick the episode there.`;draw()}
 }
 
 /* rendering */
@@ -501,7 +507,7 @@ function tview(e,L){
 ${w?`<div class="chips" style="margin:14px 0 0">${['Plan to watch','Watching','Completed','Dropped'].map(t=>`<button class="chip ${w.tag===t?'on':''}" data-act="tag" data-k="${esc(e.k)}" data-t="${t}">${t}</button>`).join('')}</div>`:''}
 <p class="note" style="margin-top:12px">${sn.last?`Last watched · Episode ${esc(sn.last.ep)} · ${ago(sn.last.at)} <button class="chip" data-act="clrp" data-k="${esc(e.k)}">Clear progress</button>`:'Nothing watched yet.'}</p></div></div>
 ${list.length?`<h3 style="margin-bottom:14px">Episodes</h3><div class="eps">${list.map(x=>{const has=epm.has(x),seen=sn.eps[x],f=has?epm.get(x):[],lb=[...new Set(f.flatMap(y=>y.sub||[]))].join(', ');
-return`<button class="ep ${seen?'seen':''} ${has?'':'off'}" ${has?`data-act="ep" data-ep="${esc(x)}"`:'disabled'} title="${esc(has?f.map(y=>y.src).join(', '):'No link yet')}">${esc(x)}<small>${esc(lb||(has?'':'—'))}</small></button>`}).join('')}</div>`:''}
+return`<button class="ep ${seen?'seen':''}" data-act="ep" data-ep="${esc(x)}" title="${esc(has?f.map(y=>y.src).join(', '):'Plays through the source site')}">${esc(x)}<small>${esc(lb||(has?'':'via source'))}</small></button>`}).join('')}</div>`:''}
 ${sourceRecords.length?`<h3 style="margin-bottom:10px">Provider links and episodes</h3><p class="note">All matching provider records are kept here. Episode links stay grouped with their episode numbers.</p><ul class="fl">${sourceRecords.map(f=>{const u=f.video||f.link;return`<li><div><b>${esc(f.src)}${f.ep?' · Episode '+esc(f.ep):' · Catalogue'}</b><small>${esc(f.raw)}${f.sub&&f.sub.length?' · '+esc(f.sub.join(', ')):''}${f.video?' · Direct media':''}</small></div><button class="btn sm pri" data-act="pl" data-u="${safe(u)}" data-k="${esc(e.k)}" ${f.ep?`data-ep="${esc(f.ep)}"`:''}>Play</button>${f.link&&f.link!==u?`<a class="btn sm" href="${safe(f.link)}" target="_blank" rel="noopener noreferrer">Provider</a>`:`<a class="btn sm" href="${safe(u)}" target="_blank" rel="noopener noreferrer">Open</a>`}</li>`}).join('')}</ul>`:''}
 ${r.length?rail('You might also like','library',r):''}</div>`;
 }
